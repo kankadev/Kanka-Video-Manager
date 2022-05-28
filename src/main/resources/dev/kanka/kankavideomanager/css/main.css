@@ -1,0 +1,30 @@
+* {
+   -fx-primary: #5786a3;
+   -fx-secondary: #4b4e50;
+   -fx-yellow: #edc02e;
+}
+
+/*
+BUTTONS
+*/
+.btn {
+    -fx-border-style: none;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
+}
+
+.btn-primary {
+    -fx-background-color: -fx-primary;
+}
+
+/*
+ComboBox
+*/
+.combo-box *,
+.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell .label {
+    -fx-text-fill: -fx-secondary;
+}
+
+.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:selected .label {
+    -fx-text-fill: -fx-primary;
+}

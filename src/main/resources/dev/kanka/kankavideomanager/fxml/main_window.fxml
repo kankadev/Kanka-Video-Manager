@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<BorderPane fx:id="borderPane" minHeight="500.0" minWidth="500.0" prefHeight="1080.0" prefWidth="1920.0"
+            xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="dev.kanka.kankavideomanager.ui.controller.MainController">
+    <bottom>
+        <HBox prefHeight="250.0">
+            <TableView fx:id="playList" BorderPane.alignment="CENTER" HBox.hgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="statusColumn" prefWidth="150.0" text="Status"/>
+                    <TableColumn fx:id="pathNameColumn" prefWidth="400.0" text="File"/>
+                </columns>
+            </TableView>
+            <Text text="Hallo"/>
+        </HBox>
+    </bottom>
+    <top>
+        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Text" BorderPane.alignment="CENTER"/>
+    </top>
+    <left>
+        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Text" BorderPane.alignment="CENTER"/>
+    </left>
+    <right>
+        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Text" BorderPane.alignment="CENTER"/>
+    </right>
+    <center>
+        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Text" BorderPane.alignment="CENTER"/>
+    </center>
+</BorderPane>

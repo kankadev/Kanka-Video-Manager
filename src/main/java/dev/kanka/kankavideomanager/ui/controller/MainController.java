@@ -4,7 +4,9 @@ import dev.kanka.kankavideomanager.enums.MEDIA_STATUS;
 import dev.kanka.kankavideomanager.pojo.KnkMedia;
 import dev.kanka.kankavideomanager.ui.common.FxController;
 import dev.kanka.kankavideomanager.utils.MediaStatusUtil;
+import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableArray;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
 import javafx.fxml.FXML;
@@ -19,6 +21,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.kordamp.ikonli.javafx.FontIcon;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
+import uk.co.caprica.vlcj.media.callback.CallbackMedia;
 import uk.co.caprica.vlcj.player.base.MediaPlayer;
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter;
 import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
@@ -41,6 +44,9 @@ public class MainController implements FxController {
     private EmbeddedMediaPlayer embeddedMediaPlayer;
     private ImageView videoImageView;
 
+    private List<Button> controlButtons;
+    private List<Button> playListButtons;
+
     @FXML
     BorderPane borderPane;
 
@@ -53,6 +59,15 @@ public class MainController implements FxController {
     @FXML
     TableColumn<KnkMedia, String> pathNameColumn;
 
+    @FXML
+    TableColumn<KnkMedia, String> fileSizeColumn;
+
+    @FXML
+    Button playPauseBtn, stopBtn, previousBtn, nextBtn, skipBackwardBtn, skipForwardBtn, deleteBtn, moveBtn;
+
+    @FXML
+    Button emptyPlaylistBtn, processAllFilesBtn;
+
     public static MainController getInstance() {
         if (MainController.instance == null) {
             MainController.instance = new MainController();
@@ -62,37 +77,47 @@ public class MainController implements FxController {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        controlButtons = FXCollections.observableArrayList(playPauseBtn, stopBtn, previousBtn, nextBtn, skipBackwardBtn, skipForwardBtn, deleteBtn, moveBtn);
+        playListButtons = FXCollections.observableArrayList(emptyPlaylistBtn, processAllFilesBtn);
+
         initPlayer();
+        initControlButtons();
         initPlayList();
+        initPlayListButtons();
         initDragDropListener();
     }
 
     private void initPlayer() {
-        mediaPlayerFactory = new MediaPlayerFactory();
-        embeddedMediaPlayer = mediaPlayerFactory.mediaPlayers().newEmbeddedMediaPlayer();
+        this.mediaPlayerFactory = new MediaPlayerFactory();
+        this.embeddedMediaPlayer = mediaPlayerFactory.mediaPlayers().newEmbeddedMediaPlayer();
 
         this.embeddedMediaPlayer.events().addMediaPlayerEventListener(new MediaPlayerEventAdapter() {
             @Override
             public void playing(MediaPlayer mediaPlayer) {
+                stopBtn.setDisable(false);
+                playPauseBtn.setText("Pause");
             }
 
             @Override
             public void paused(MediaPlayer mediaPlayer) {
+                stopBtn.setDisable(false);
+                playPauseBtn.setText("Play");
             }
 
             @Override
             public void stopped(MediaPlayer mediaPlayer) {
+                stopBtn.setDisable(true);
+                playPauseBtn.setText("Play");
             }
 
             @Override
             public void timeChanged(MediaPlayer mediaPlayer, long newTime) {
+                // TODO implement timeline
             }
         });
 
         this.videoImageView = new ImageView();
         this.videoImageView.setPreserveRatio(true);
-
-        embeddedMediaPlayer.videoSurface().set(videoSurfaceForImageView(this.videoImageView));
 
         videoImageView.fitWidthProperty().bind(borderPane.widthProperty());
         videoImageView.fitHeightProperty().bind(borderPane.heightProperty());
@@ -105,12 +130,21 @@ public class MainController implements FxController {
             // If you need to know about resizes
         });
 
-        borderPane.setCenter(videoImageView);
-
         this.videoImageView = new ImageView();
         this.videoImageView.setPreserveRatio(true);
 
-        embeddedMediaPlayer.videoSurface().set(videoSurfaceForImageView(this.videoImageView));
+        this.embeddedMediaPlayer.videoSurface().set(videoSurfaceForImageView(this.videoImageView));
+
+        borderPane.setCenter(videoImageView);
+    }
+
+    private void initControlButtons() {
+        for (Button btn : controlButtons) {
+            btn.disableProperty().bind(playList.getSelectionModel().selectedItemProperty().isNull());
+        }
+
+        playPauseBtn.setOnAction(event -> play());
+        stopBtn.setOnAction(event -> stop());
     }
 
     private void initPlayList() {
@@ -128,7 +162,7 @@ public class MainController implements FxController {
 //                        label.setGraphic(icon);
 //                    }
                     final ComboBox<MEDIA_STATUS> comboBox = new ComboBox<>(FXCollections.observableArrayList(MEDIA_STATUS.values()));
-                    if(comboBox.getSelectionModel().isEmpty()){
+                    if (comboBox.getSelectionModel().isEmpty()) {
                         comboBox.getSelectionModel().select(MEDIA_STATUS.UNPROCESSED);
                     }
                     setGraphic(comboBox);
@@ -143,7 +177,16 @@ public class MainController implements FxController {
         // Filename Column
         pathNameColumn.setCellValueFactory(new PropertyValueFactory<>("pathName"));
 
-//        playList.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        // File Size Column
+        fileSizeColumn.setCellValueFactory(new PropertyValueFactory<>("fileSize"));
+    }
+
+    private void initPlayListButtons() {
+        for (Button btn : playListButtons) {
+            btn.disableProperty().bind(playList.getSelectionModel().selectedItemProperty().isNull());
+        }
+
+        emptyPlaylistBtn.setOnAction(event -> emptyPlaylist());
     }
 
     private void initDragDropListener() {
@@ -192,12 +235,24 @@ public class MainController implements FxController {
         });
     }
 
+    private void play() {
+        if(embeddedMediaPlayer != null ) {
+//            embeddedMediaPlayer.controls().play();
+            embeddedMediaPlayer.media().play(playList.getItems().get(0).getAbsolutePath());
+        }
+    }
+
     public void stop() {
         if (embeddedMediaPlayer != null) {
             embeddedMediaPlayer.controls().stop();
             embeddedMediaPlayer.release();
             mediaPlayerFactory.release();
         }
+    }
+
+    private void emptyPlaylist() {
+        stop();
+        playList.getItems().clear();
     }
 
 }

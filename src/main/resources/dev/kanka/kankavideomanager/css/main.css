@@ -28,3 +28,18 @@ ComboBox
 .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:selected .label {
     -fx-text-fill: -fx-primary;
 }
+
+/*
+VideoFrame
+*/
+.videoFrame:playing {
+    -fx-border-color: blue;
+    -fx-border-width: 5;
+    -fx-border-style: solid;
+}
+
+.videoFrame:finished {
+    -fx-border-color: red;
+    -fx-border-width: 5;
+    -fx-border-style: solid;
+}

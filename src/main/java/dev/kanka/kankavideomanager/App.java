@@ -45,7 +45,7 @@ public class App extends Application {
 
     @Override
     public final void stop() {
-        MainController.getInstance().stop();
+        MainController.getInstance().stopAndRelease();
     }
 
     public static void main(String[] args) {

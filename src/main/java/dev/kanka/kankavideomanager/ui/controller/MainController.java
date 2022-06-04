@@ -3,15 +3,15 @@ package dev.kanka.kankavideomanager.ui.controller;
 import dev.kanka.kankavideomanager.enums.MEDIA_STATUS;
 import dev.kanka.kankavideomanager.pojo.KnkMedia;
 import dev.kanka.kankavideomanager.ui.common.FxController;
+import dev.kanka.kankavideomanager.ui.custom.KnkImageView;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
-import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
@@ -38,6 +38,7 @@ import static org.kordamp.ikonli.materialdesign2.MaterialDesignF.FILE_MOVE;
 import static org.kordamp.ikonli.materialdesign2.MaterialDesignP.PLAYLIST_CHECK;
 import static org.kordamp.ikonli.materialdesign2.MaterialDesignP.PLAYLIST_REMOVE;
 import static org.kordamp.ikonli.materialdesign2.MaterialDesignS.*;
+import static org.kordamp.ikonli.materialdesign2.MaterialDesignV.VOLUME_HIGH;
 import static uk.co.caprica.vlcj.javafx.videosurface.ImageViewVideoSurfaceFactory.videoSurfaceForImageView;
 
 public class MainController implements FxController {
@@ -48,22 +49,18 @@ public class MainController implements FxController {
 
     private MediaPlayerFactory mediaPlayerFactory;
     private EmbeddedMediaPlayer embeddedMediaPlayer;
-    private ImageView videoImageView;
+    private KnkImageView videoImageView;
 
     private List<Button> controlButtons;
     private List<Button> playListButtons;
 
     private static KnkMedia currentPlayingMedia;
-    
-    private static PseudoClass PLAYING_PSEUDO_CLASS = PseudoClass.getPseudoClass("playing");
-    private static PseudoClass FINISHED_PSEUDO_CLASS = PseudoClass.getPseudoClass("finished");
-
 
     @FXML
     BorderPane borderPane;
 
     @FXML
-    Slider timeSlider, volumeSlider;
+    Slider timeSlider, volumeSlider, speedSlider;
 
     @FXML
     Button playPauseBtn, stopBtn, previousBtn, nextBtn, skipBackwardBtn, skipForwardBtn, deleteBtn, moveBtn;
@@ -81,7 +78,7 @@ public class MainController implements FxController {
     TableColumn<KnkMedia, String> fileSizeColumn;
 
     @FXML
-    Label countFilesLabel, volumeLabel;
+    Label countFilesLabel, volumeIcon, volumeLabel, speedLabel;
 
     @FXML
     Button emptyPlaylistBtn, processAllFilesBtn;
@@ -100,6 +97,7 @@ public class MainController implements FxController {
 
         initPlayer();
         initTimeSlider();
+        initSpeedSlider();
         initControlButtons();
         initPlayList();
         initPlayListButtons();
@@ -146,24 +144,21 @@ public class MainController implements FxController {
             @Override
             public void finished(MediaPlayer mediaPlayer) {
                 LOGGER.debug("mediaPlayer: {}", mediaPlayer);
+
+                Platform.runLater(() -> {
+                    playPauseBtn.setText("Play");
+                    playPauseBtn.setGraphic(new FontIcon(PLAY_CIRCLE));
+                });
             }
 
             @Override
             public void timeChanged(MediaPlayer mediaPlayer, long newTime) {
-                // TODO implement timeline
                 LOGGER.debug("newTime: {}", newTime);
                 timeSlider.setValue(newTime);
             }
 
             @Override
-            public void positionChanged(MediaPlayer mediaPlayer, float newPosition) {
-                //LOGGER.debug("newPosition: {}", newPosition);
-//                timeSlider.setValue(newPosition * 100);
-            }
-
-            @Override
             public void volumeChanged(MediaPlayer mediaPlayer, float volume) {
-                // TODO update volume label
                 LOGGER.debug("mediaPlayer: {}, volume: {}", mediaPlayer, volume);
             }
         });
@@ -178,10 +173,13 @@ public class MainController implements FxController {
             LOGGER.debug("borderPane's height: {}", newValue);
         });
 
-        this.videoImageView = new ImageView();
+        this.videoImageView = new KnkImageView();
         ResizableImageView resizableImageView = new ResizableImageView(videoImageView);
         this.videoImageView.setPreserveRatio(true);
         this.embeddedMediaPlayer.videoSurface().set(videoSurfaceForImageView(this.videoImageView));
+
+
+        resizableImageView.getStyleClass().add("knkImageView");
 
         borderPane.setCenter(resizableImageView);
         borderPane.getCenter().getStyleClass().setAll("videoFrame");
@@ -189,6 +187,17 @@ public class MainController implements FxController {
 
     private void initTimeSlider() {
 
+    }
+
+    private void initSpeedSlider() {
+
+        speedLabel.textProperty().bind(Bindings.format("%.2fx", speedSlider.valueProperty()));
+        speedSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+            embeddedMediaPlayer.controls().setRate(newValue.floatValue());
+
+            float rate = embeddedMediaPlayer.status().rate();
+            LOGGER.debug("Current speed/rate: {}", rate);
+        });
     }
 
     private void initControlButtons() {
@@ -226,6 +235,9 @@ public class MainController implements FxController {
             emptyPlaylistBtn.setGraphic(new FontIcon(PLAYLIST_REMOVE));
             processAllFilesBtn.setGraphic(new FontIcon(PLAYLIST_CHECK));
 
+            volumeIcon.setGraphic(new FontIcon(VOLUME_HIGH));
+            volumeIcon.setText(null);
+            volumeLabel.textProperty().bind(Bindings.format("%.0f", volumeSlider.valueProperty()));
             embeddedMediaPlayer.audio().setVolume((int) volumeSlider.getValue() / 100);
             volumeSlider.valueProperty().addListener((observable, oldValue, newValue) -> embeddedMediaPlayer.audio().setVolume(newValue.intValue()));
         });
@@ -249,6 +261,11 @@ public class MainController implements FxController {
                     if (comboBox.getSelectionModel().isEmpty()) {
                         comboBox.getSelectionModel().select(MEDIA_STATUS.UNPROCESSED);
                     }
+
+                    comboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+                        LOGGER.debug("comboBox selection changed from {} to {}", oldValue, newValue);
+                    });
+
                     setGraphic(comboBox);
                     setAlignment(Pos.CENTER);
                 } else {

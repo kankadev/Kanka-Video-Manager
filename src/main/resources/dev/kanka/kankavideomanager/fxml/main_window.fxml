@@ -26,6 +26,12 @@
                   <Button fx:id="stopBtn" mnemonicParsing="false" text="Stop" />
                   <Button fx:id="previousBtn" mnemonicParsing="false" text="Previous" />
                   <Button fx:id="nextBtn" mnemonicParsing="false" text="Next" />
+                  <VBox alignment="CENTER">
+                     <children>
+                        <Label fx:id="speedLabel" text="Label" />
+                        <Slider fx:id="speedSlider" blockIncrement="1.0" majorTickUnit="2.0" max="18.0" min="0.1" minorTickCount="2" prefHeight="38.0" prefWidth="220.0" showTickLabels="true" showTickMarks="true" value="1.0" />
+                     </children>
+                  </VBox>
                </children>
                <VBox.margin>
                   <Insets left="10.0" right="10.0" top="10.0" />
@@ -57,12 +63,17 @@
                         </TableView>
                      <VBox alignment="CENTER">
                         <children>
+                           <HBox alignment="CENTER">
+                              <children>
+                                 <Label fx:id="volumeIcon" text="Ico" />
+                                 <Label fx:id="volumeLabel" />
+                              </children>
+                           </HBox>
                            <Slider fx:id="volumeSlider" minorTickCount="5" orientation="VERTICAL" showTickLabels="true" showTickMarks="true" snapToTicks="true" value="10.0" VBox.vgrow="ALWAYS">
                               <padding>
                                  <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                               </padding>
                            </Slider>
-                           <Label fx:id="volumeLabel" alignment="CENTER" contentDisplay="CENTER" text="Volume" />
                         </children>
                      </VBox>
                     </HBox>

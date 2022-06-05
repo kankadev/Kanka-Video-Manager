@@ -1,7 +1,7 @@
 package dev.kanka.kankavideomanager.pojo;
 
 import dev.kanka.kankavideomanager.enums.MEDIA_STATUS;
-import dev.kanka.kankavideomanager.utils.MediaUtils;
+import dev.kanka.kankavideomanager.utils.MediaUtil;
 import javafx.beans.property.ReadOnlyStringWrapper;
 
 import java.io.File;
@@ -17,7 +17,7 @@ public class KnkMedia extends File {
         super(pathname);
         this.status = new ReadOnlyStringWrapper(MEDIA_STATUS.UNPROCESSED.toString());
         this.pathName = new ReadOnlyStringWrapper(pathname);
-        this.fileSize = new ReadOnlyStringWrapper(MediaUtils.humanReadableByteCountBin(super.length()));
+        this.fileSize = new ReadOnlyStringWrapper(MediaUtil.humanReadableByteCountBin(super.length()));
         // TODO use setConverter on GUI (extends StringConverter...)
     }
 

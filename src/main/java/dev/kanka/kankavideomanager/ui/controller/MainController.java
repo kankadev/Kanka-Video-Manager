@@ -5,6 +5,7 @@ import dev.kanka.kankavideomanager.pojo.KnkMedia;
 import dev.kanka.kankavideomanager.ui.common.FxController;
 import dev.kanka.kankavideomanager.ui.custom.KnkImageView;
 import dev.kanka.kankavideomanager.utils.GUIUtil;
+import dev.kanka.kankavideomanager.utils.WebUtil;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
@@ -15,6 +16,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
@@ -34,6 +36,7 @@ import java.io.File;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.ResourceBundle;
 
 import static org.kordamp.ikonli.fontawesome5.FontAwesomeRegular.PAUSE_CIRCLE;
@@ -46,7 +49,7 @@ import static org.kordamp.ikonli.materialdesign2.MaterialDesignS.*;
 import static org.kordamp.ikonli.materialdesign2.MaterialDesignV.VOLUME_HIGH;
 import static uk.co.caprica.vlcj.javafx.videosurface.ImageViewVideoSurfaceFactory.videoSurfaceForImageView;
 
-public class MainController implements FxController {
+public class MainController extends FxController {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
@@ -54,13 +57,12 @@ public class MainController implements FxController {
 
     private MediaPlayerFactory mediaPlayerFactory;
     private EmbeddedMediaPlayer embeddedMediaPlayer;
-    private KnkImageView videoImageView;
 
     private List<Button> controlButtons;
     private List<Button> playListButtons;
 
-    private FontIcon pauseIcon = new FontIcon(PAUSE_CIRCLE);
-    private FontIcon playIcon = new FontIcon(PLAY_CIRCLE);
+    private final FontIcon pauseIcon = new FontIcon(PAUSE_CIRCLE);
+    private final FontIcon playIcon = new FontIcon(PLAY_CIRCLE);
 
     private static KnkMedia currentPlayingMedia;
 
@@ -91,6 +93,12 @@ public class MainController implements FxController {
     @FXML
     Button emptyPlaylistBtn, processAllFilesBtn;
 
+    @FXML
+    ImageView logoImageView;
+
+    @FXML
+    Hyperlink kankaLink;
+
     /**
      * @return MainController singleton instance
      */
@@ -112,6 +120,7 @@ public class MainController implements FxController {
         initPlayList();
         initPlayListButtons();
         initDragDropListener();
+        initLogo();
     }
 
 
@@ -189,10 +198,10 @@ public class MainController implements FxController {
             LOGGER.debug("borderPane's height: {}", newValue);
         });
 
-        this.videoImageView = new KnkImageView();
+        KnkImageView videoImageView = new KnkImageView();
         ResizableImageView resizableImageView = new ResizableImageView(videoImageView);
-        this.videoImageView.setPreserveRatio(true);
-        this.embeddedMediaPlayer.videoSurface().set(videoSurfaceForImageView(this.videoImageView));
+        videoImageView.setPreserveRatio(true);
+        this.embeddedMediaPlayer.videoSurface().set(videoSurfaceForImageView(videoImageView));
         resizableImageView.getStyleClass().add("knkImageView");
 
         borderPane.setCenter(resizableImageView);
@@ -509,7 +518,16 @@ public class MainController implements FxController {
                 ObservableSet<KnkMedia> knkMedias = FXCollections.observableSet();
 
                 for (File file : newFiles) {
-                    knkMedias.add(new KnkMedia(file.getAbsolutePath()));
+                    if (file.isFile()) {
+                        knkMedias.add(new KnkMedia(file.getAbsolutePath()));
+                    }
+                    if (file.isDirectory()) {
+                        for (File childFile : Objects.requireNonNull(file.listFiles())) {
+                            if (childFile.isFile()) {
+                                knkMedias.add(new KnkMedia(childFile.getAbsolutePath()));
+                            }
+                        }
+                    }
                 }
 
                 knkMedias.addAll(playList.getItems());
@@ -519,7 +537,7 @@ public class MainController implements FxController {
 
                 success = true;
 
-                LOGGER.debug("Added file(s) to playlist: {}", newFiles);
+                LOGGER.debug("Added file(s) to playlist: {}", knkMedias);
             }
 
             /*
@@ -566,5 +584,17 @@ public class MainController implements FxController {
         stop();
         playList.getItems().clear();
         countFilesLabel.setText("0 files in playlist");
+    }
+
+    private void initLogo() {
+        logoImageView.getStyleClass().add("knkLogo");
+
+        logoImageView.setOnMouseClicked(event -> {
+            WebUtil.openKankaWebsite();
+        });
+
+        kankaLink.setOnAction(event -> {
+            WebUtil.openKankaWebsite();
+        });
     }
 }

@@ -4,14 +4,19 @@ import dev.kanka.kankavideomanager.enums.MEDIA_STATUS;
 import dev.kanka.kankavideomanager.pojo.KnkMedia;
 import dev.kanka.kankavideomanager.ui.common.FxController;
 import dev.kanka.kankavideomanager.ui.custom.KnkImageView;
+import dev.kanka.kankavideomanager.utils.GUIUtil;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
@@ -54,6 +59,9 @@ public class MainController implements FxController {
     private List<Button> controlButtons;
     private List<Button> playListButtons;
 
+    private FontIcon pauseIcon = new FontIcon(PAUSE_CIRCLE);
+    private FontIcon playIcon = new FontIcon(PLAY_CIRCLE);
+
     private static KnkMedia currentPlayingMedia;
 
     @FXML
@@ -83,6 +91,9 @@ public class MainController implements FxController {
     @FXML
     Button emptyPlaylistBtn, processAllFilesBtn;
 
+    /**
+     * @return MainController singleton instance
+     */
     public static MainController getInstance() {
         if (MainController.instance == null) {
             MainController.instance = new MainController();
@@ -96,7 +107,6 @@ public class MainController implements FxController {
         playListButtons = FXCollections.observableArrayList(emptyPlaylistBtn, processAllFilesBtn);
 
         initPlayer();
-        initTimeSlider();
         initSpeedSlider();
         initControlButtons();
         initPlayList();
@@ -104,6 +114,10 @@ public class MainController implements FxController {
         initDragDropListener();
     }
 
+
+    /**
+     * setup player and its listeners
+     */
     private void initPlayer() {
         this.mediaPlayerFactory = new MediaPlayerFactory();
         this.embeddedMediaPlayer = mediaPlayerFactory.mediaPlayers().newEmbeddedMediaPlayer();
@@ -111,43 +125,45 @@ public class MainController implements FxController {
         this.embeddedMediaPlayer.events().addMediaPlayerEventListener(new MediaPlayerEventAdapter() {
             @Override
             public void mediaChanged(MediaPlayer mediaPlayer, MediaRef media) {
-                LOGGER.debug("mediaPlayer: {}, media: {}", mediaPlayer, media);
+                LOGGER.debug("media: {}", media);
+
                 timeSlider.setMin(0);
                 timeSlider.setValue(0);
             }
 
             @Override
             public void playing(MediaPlayer mediaPlayer) {
-                LOGGER.debug("mediaPlayer: {}", mediaPlayer);
+                LOGGER.debug("");
                 timeSlider.setMax(mediaPlayer.media().info().duration());
 
                 Platform.runLater(() -> {
                     playPauseBtn.setText("Pause");
-                    playPauseBtn.setGraphic(new FontIcon(PAUSE_CIRCLE));
+                    playPauseBtn.setGraphic(pauseIcon);
                 });
             }
 
             @Override
             public void paused(MediaPlayer mediaPlayer) {
-                LOGGER.debug("mediaPlayer: {}", mediaPlayer);
+                LOGGER.debug("");
+
                 Platform.runLater(() -> {
                     playPauseBtn.setText("Play");
-                    playPauseBtn.setGraphic(new FontIcon(PLAY_CIRCLE));
+                    playPauseBtn.setGraphic(playIcon);
                 });
             }
 
             @Override
             public void stopped(MediaPlayer mediaPlayer) {
-                LOGGER.debug("mediaPlayer: {}", mediaPlayer);
+                LOGGER.debug("");
             }
 
             @Override
             public void finished(MediaPlayer mediaPlayer) {
-                LOGGER.debug("mediaPlayer: {}", mediaPlayer);
+                LOGGER.debug("");
 
                 Platform.runLater(() -> {
                     playPauseBtn.setText("Play");
-                    playPauseBtn.setGraphic(new FontIcon(PLAY_CIRCLE));
+                    playPauseBtn.setGraphic(playIcon);
                 });
             }
 
@@ -159,7 +175,7 @@ public class MainController implements FxController {
 
             @Override
             public void volumeChanged(MediaPlayer mediaPlayer, float volume) {
-                LOGGER.debug("mediaPlayer: {}, volume: {}", mediaPlayer, volume);
+                LOGGER.debug("volume: {}", volume);
             }
         });
 
@@ -177,20 +193,16 @@ public class MainController implements FxController {
         ResizableImageView resizableImageView = new ResizableImageView(videoImageView);
         this.videoImageView.setPreserveRatio(true);
         this.embeddedMediaPlayer.videoSurface().set(videoSurfaceForImageView(this.videoImageView));
-
-
         resizableImageView.getStyleClass().add("knkImageView");
 
         borderPane.setCenter(resizableImageView);
-        borderPane.getCenter().getStyleClass().setAll("videoFrame");
+        borderPane.getCenter().getStyleClass().add("videoFrame");
     }
 
-    private void initTimeSlider() {
-
-    }
-
+    /**
+     * init speed/rate GUI controls
+     */
     private void initSpeedSlider() {
-
         speedLabel.textProperty().bind(Bindings.format("%.2fx", speedSlider.valueProperty()));
         speedSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
             embeddedMediaPlayer.controls().setRate(newValue.floatValue());
@@ -200,6 +212,9 @@ public class MainController implements FxController {
         });
     }
 
+    /**
+     * init control buttons and their listeners
+     */
     private void initControlButtons() {
         for (Button btn : controlButtons) {
             btn.disableProperty().bind(playList.getSelectionModel().selectedItemProperty().isNull());
@@ -244,7 +259,7 @@ public class MainController implements FxController {
     }
 
     private void initPlayList() {
-        // MEDIA_STATUS Column
+        // MEDIA_STATUS column
         statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
         statusColumn.setCellFactory(param -> new TableCell<>() {
             @Override
@@ -274,17 +289,195 @@ public class MainController implements FxController {
             }
         });
 
-
-        // Filename Column
+        // filename column
         pathNameColumn.setCellValueFactory(new PropertyValueFactory<>("pathName"));
 
-        // File Size Column
+        // file size column
         fileSizeColumn.setCellValueFactory(new PropertyValueFactory<>("fileSize"));
 
-        // Count files in playList // TODO: not working on "empty playlist"
+        // count files in playList // TODO: not working on "empty playlist"
         playList.itemsProperty().addListener(observable -> countFilesLabel.setText(playList.getItems().size() + " files in playlist"));
+
+        // create context menu for each row
+        playList.setRowFactory(tableView -> {
+            final TableRow<KnkMedia> row = new TableRow<>();
+            final ContextMenu rowMenu = new ContextMenu();
+            createMenuItemsForContextMenuInPlayList(row, rowMenu);
+
+            // only display context menu for non-null items
+            row.contextMenuProperty().bind(Bindings.when(Bindings.isNotNull(row.itemProperty())).then(rowMenu).otherwise((ContextMenu) null));
+            return row;
+        });
     }
 
+    /**
+     * Creates menu items for the context menu for each row in the playlist.
+     *
+     * @param row
+     * @param rowMenu
+     */
+    private void createMenuItemsForContextMenuInPlayList(TableRow<KnkMedia> row, ContextMenu rowMenu) {
+        // copy filename to clipboard
+        CustomMenuItem copyFileNameMenuItem = createCopyFileNameToClipBoardMenuItem(row);
+
+        // copy absolute path to clipboard
+        CustomMenuItem copyFullPathMenuItem = createCopyFullPathToClipBoardMenuItem(row);
+
+        // remove media item from playlist
+        CustomMenuItem removeMenuItem = createMenuItem("Removes this file from playlist.",
+                "Remove from playlist", event -> removeItem(row.getItem(), false), "removeMenuItem");
+
+        // mark media item to delete from hard drive
+        CustomMenuItem deleteMenuItem = createMenuItem("Marks this file to be deleted directly from hard drive.",
+                "Delete", event -> markMediaForDeletion(row.getItem(), false), "deleteMenuItem");
+
+        // mark media item to move this file to another destination
+        CustomMenuItem moveMenuItem = createMenuItem("Marks this file to be moved to another destination.",
+                "Move", event -> markMediaForMoving(row.getItem(), false), "moveMenuItem");
+
+        rowMenu.getItems().addAll(copyFileNameMenuItem, copyFullPathMenuItem, removeMenuItem, deleteMenuItem, moveMenuItem);
+    }
+
+
+    /**
+     * Creates a menu item which copies the file name to the clipboard.
+     *
+     * @param row
+     * @return menu item
+     */
+    private CustomMenuItem createCopyFileNameToClipBoardMenuItem(TableRow<KnkMedia> row) {
+        Label copyLabel = GUIUtil.createLabelWithTooltip("Copy filename to clipboard", "Copy filename");
+        CustomMenuItem copyMenuItem = new CustomMenuItem(copyLabel);
+        copyMenuItem.getStyleClass().add("copyFilenameMenuItem");
+        final Clipboard clipboard = Clipboard.getSystemClipboard();
+        final ClipboardContent content = new ClipboardContent();
+        copyMenuItem.setOnAction(event -> {
+            content.putString(row.getItem().getName());
+            clipboard.setContent(content);
+        });
+        return copyMenuItem;
+    }
+
+    /**
+     * Creates a menu item which copies the absolute path to the clipboard.
+     *
+     * @param row
+     * @return
+     */
+    private CustomMenuItem createCopyFullPathToClipBoardMenuItem(TableRow<KnkMedia> row) {
+        Label copyLabel = GUIUtil.createLabelWithTooltip("Copy absolute path to clipboard", "Copy full path");
+        CustomMenuItem copyMenuItem = new CustomMenuItem(copyLabel);
+        copyMenuItem.getStyleClass().add("copyFullPathMenuItem");
+        final Clipboard clipboard = Clipboard.getSystemClipboard();
+        final ClipboardContent content = new ClipboardContent();
+        copyMenuItem.setOnAction(event -> {
+            content.putString(row.getItem().getAbsolutePath());
+            clipboard.setContent(content);
+        });
+        return copyMenuItem;
+    }
+
+
+    private void markMediaForDeletion(KnkMedia media) {
+        markMediaForDeletion(media, true);
+    }
+
+    /**
+     * Sets the status of the media to be deleted.
+     *
+     * @param media
+     * @param skip  skips to the next media file if true
+     */
+    private void markMediaForDeletion(KnkMedia media, boolean skip) {
+        LOGGER.debug("Mark for deletion: {}", media);
+        if (!isPlaylistEmpty() && media != null) {
+            media.setStatus(MEDIA_STATUS.DELETE);
+        }
+        playList.refresh();
+        if (skip) {
+//            nextMedia();
+        }
+    }
+
+    private void markMediaForMoving(KnkMedia media) {
+        markMediaForMoving(media, true);
+    }
+
+    /**
+     * Sets the status of the media to be moved to another location.
+     *
+     * @param media
+     * @param skip  skips to the next media file in playlist if true
+     */
+    private void markMediaForMoving(KnkMedia media, boolean skip) {
+        LOGGER.debug("Mark for moving: {}", media);
+        if (!isPlaylistEmpty() && media != null) {
+            media.setStatus(MEDIA_STATUS.MOVE);
+        }
+        playList.refresh();
+        if (skip) {
+//            nextMedia();
+        }
+    }
+
+    /**
+     * Creates a menu item.
+     *
+     * @param tooltipText
+     * @param labelText
+     * @param actionEventEventHandler
+     * @param styleClass
+     * @return created menu item
+     */
+    private CustomMenuItem createMenuItem(String tooltipText, String labelText, EventHandler<ActionEvent> actionEventEventHandler, String styleClass) {
+        Label removeLabel = GUIUtil.createLabelWithTooltip(tooltipText, labelText);
+        CustomMenuItem customMenuItem = new CustomMenuItem(removeLabel);
+        customMenuItem.getStyleClass().add(styleClass);
+        customMenuItem.setOnAction(actionEventEventHandler);
+        return customMenuItem;
+    }
+
+
+    /**
+     * Removes item from playlist and skips to the next media in playlist.
+     *
+     * @param media
+     * @return true if item was removed from playlist successfully, otherwise false
+     */
+    private boolean removeItem(KnkMedia media) {
+        return removeItem(media, true);
+    }
+
+    /**
+     * Removes item from playlist.
+     *
+     * @param media
+     * @param skip  skip to the next media in playlist if true
+     * @return true if item was removed from playlist successfully, otherwise false
+     */
+    private boolean removeItem(KnkMedia media, boolean skip) {
+        boolean removed = false;
+        if (!isPlaylistEmpty() && media != null) {
+            removed = playList.getItems().remove(media);
+        }
+        if (skip) {
+//            next(); // TODO
+        }
+        return removed;
+    }
+
+    /**
+     * Provides the information whether the playlist is empty or not.
+     *
+     * @return true if playlist is empty, otherwise false.
+     */
+    private boolean isPlaylistEmpty() {
+        return playList.getItems().isEmpty();
+    }
+
+    /**
+     * Initializes the playlist related buttons.
+     */
     private void initPlayListButtons() {
         for (Button btn : playListButtons) {
             btn.disableProperty().bind(playList.getSelectionModel().selectedItemProperty().isNull());
@@ -293,6 +486,9 @@ public class MainController implements FxController {
         emptyPlaylistBtn.setOnAction(event -> emptyPlaylist());
     }
 
+    /**
+     * Handles drag and drop of files.
+     */
     private void initDragDropListener() {
         playList.setOnDragOver(event -> {
             if (event.getGestureSource() != playList && event.getDragboard().hasFiles()) {
@@ -371,5 +567,4 @@ public class MainController implements FxController {
         playList.getItems().clear();
         countFilesLabel.setText("0 files in playlist");
     }
-
 }

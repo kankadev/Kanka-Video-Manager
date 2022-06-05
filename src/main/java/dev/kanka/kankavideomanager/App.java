@@ -17,7 +17,7 @@ import java.io.IOException;
 
 public class App extends Application {
 
-    private static final Logger logger = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger();
 
 
     @Override
@@ -30,6 +30,10 @@ public class App extends Application {
         Scene scene = new Scene(pane);
         scene.getStylesheets().add(getClass().getResource("/dev/kanka/kankavideomanager/css/main.css").toExternalForm());
 
+//        MainController controller = fxmlLoader.getController();
+        MainController.getInstance().setHostServices(getHostServices());
+//        controller.setHostServices(getHostServices());
+
         primaryStage.setTitle("Kanka Video Manager");
         primaryStage.setScene(scene);
         primaryStage.setMinWidth(750);
@@ -37,10 +41,6 @@ public class App extends Application {
         primaryStage.setMaximized(true);
         primaryStage.setOnCloseRequest(event -> Platform.exit());
         primaryStage.show();
-
-
-//        embeddedMediaPlayer.media().play(params.get(0));
-//        embeddedMediaPlayer.controls().setPosition(0.4f);
     }
 
     @Override
@@ -51,5 +51,6 @@ public class App extends Application {
     public static void main(String[] args) {
         launch(args);
     }
+
 
 }

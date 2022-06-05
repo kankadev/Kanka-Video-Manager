@@ -3,9 +3,9 @@ package dev.kanka.kankavideomanager.utils;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 
-public class MediaUtils {
+public class MediaUtil {
 
-    private MediaUtils() {
+    private MediaUtil() {
         throw new AssertionError("Don't instantiate this class.");
     }
 

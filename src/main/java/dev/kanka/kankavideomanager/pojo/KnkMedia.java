@@ -2,6 +2,7 @@ package dev.kanka.kankavideomanager.pojo;
 
 import dev.kanka.kankavideomanager.enums.MEDIA_STATUS;
 import dev.kanka.kankavideomanager.utils.MediaUtil;
+import javafx.beans.property.ReadOnlyLongWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 
 import java.io.File;
@@ -12,6 +13,8 @@ public class KnkMedia extends File {
     private final ReadOnlyStringWrapper status;
     private final ReadOnlyStringWrapper pathName;
     private final ReadOnlyStringWrapper fileSize;
+    private final ReadOnlyLongWrapper duration;
+
 
     public KnkMedia(String pathname) {
         super(pathname);
@@ -19,10 +22,15 @@ public class KnkMedia extends File {
         this.pathName = new ReadOnlyStringWrapper(pathname);
         this.fileSize = new ReadOnlyStringWrapper(MediaUtil.humanReadableByteCountBin(super.length()));
         // TODO use setConverter on GUI (extends StringConverter...)
+        this.duration = new ReadOnlyLongWrapper();
     }
 
     public String getStatus() {
         return status.get();
+    }
+
+    public void setStatus(String status) {
+        this.status.set(status);
     }
 
     public ReadOnlyStringWrapper statusProperty() {
@@ -55,6 +63,18 @@ public class KnkMedia extends File {
 
     public void setFileSize(String fileSize) {
         this.fileSize.set(fileSize);
+    }
+
+    public long getDuration() {
+        return duration.get();
+    }
+
+    public ReadOnlyLongWrapper durationProperty() {
+        return duration;
+    }
+
+    public void setDuration(long duration) {
+        this.duration.set(duration);
     }
 
     @Override

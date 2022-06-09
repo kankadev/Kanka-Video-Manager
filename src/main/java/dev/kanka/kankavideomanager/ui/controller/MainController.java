@@ -5,6 +5,7 @@ import dev.kanka.kankavideomanager.pojo.KnkMedia;
 import dev.kanka.kankavideomanager.ui.common.FxController;
 import dev.kanka.kankavideomanager.ui.custom.KnkImageView;
 import dev.kanka.kankavideomanager.utils.GUIUtil;
+import dev.kanka.kankavideomanager.utils.OSUtils;
 import dev.kanka.kankavideomanager.utils.WebUtil;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -33,6 +34,7 @@ import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter;
 import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
@@ -86,6 +88,9 @@ public class MainController extends FxController {
 
     @FXML
     TableColumn<KnkMedia, String> fileSizeColumn;
+
+    @FXML
+    TableColumn<KnkMedia, Long> durationColumn;
 
     @FXML
     Label countFilesLabel, volumeIcon, volumeLabel, speedLabel;
@@ -186,6 +191,7 @@ public class MainController extends FxController {
             public void volumeChanged(MediaPlayer mediaPlayer, float volume) {
                 LOGGER.debug("volume: {}", volume);
             }
+
         });
 
         borderPane.widthProperty().addListener((observableValue, oldValue, newValue) -> {
@@ -226,7 +232,7 @@ public class MainController extends FxController {
      */
     private void initControlButtons() {
         for (Button btn : controlButtons) {
-            btn.disableProperty().bind(playList.getSelectionModel().selectedItemProperty().isNull());
+            btn.setDisable(true);
         }
 
         Platform.runLater(() -> {
@@ -276,24 +282,17 @@ public class MainController extends FxController {
 
                 if (status != null && !empty) {
 
-//                    for (MEDIA_STATUS stat : MEDIA_STATUS.values()) {
-//                        Label label = new Label(stat.getStatus());
-//                        FontIcon icon = MediaStatusUtil.getIcon(stat);
-//                        label.setGraphic(icon);
-//                    }
                     final ComboBox<MEDIA_STATUS> comboBox = new ComboBox<>(FXCollections.observableArrayList(MEDIA_STATUS.values()));
-                    if (comboBox.getSelectionModel().isEmpty()) {
-                        comboBox.getSelectionModel().select(MEDIA_STATUS.UNPROCESSED);
-                    }
-
                     comboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
                         LOGGER.debug("comboBox selection changed from {} to {}", oldValue, newValue);
                     });
+                    comboBox.getSelectionModel().select(MEDIA_STATUS.valueOf(status));
 
                     setGraphic(comboBox);
                     setAlignment(Pos.CENTER);
                 } else {
                     setGraphic(null);
+                    setText(null);
                 }
             }
         });
@@ -304,8 +303,22 @@ public class MainController extends FxController {
         // file size column
         fileSizeColumn.setCellValueFactory(new PropertyValueFactory<>("fileSize"));
 
-        // count files in playList // TODO: not working on "empty playlist"
-        playList.itemsProperty().addListener(observable -> countFilesLabel.setText(playList.getItems().size() + " files in playlist"));
+        // duration column
+        durationColumn.setCellValueFactory(new PropertyValueFactory<>("duration"));
+
+        playList.itemsProperty().addListener((observable, oldItems, newItems) -> {
+            countFilesLabel.textProperty().bind(
+                    Bindings.size(newItems).asString("%s items in playlist"));
+
+            for (Button btn : playListButtons) {
+                btn.disableProperty().bind(Bindings.isEmpty(newItems));
+            }
+
+            for (Button btn : controlButtons) {
+                btn.disableProperty().bind(Bindings.isEmpty(newItems));
+            }
+
+        });
 
         // create context menu for each row
         playList.setRowFactory(tableView -> {
@@ -315,6 +328,16 @@ public class MainController extends FxController {
 
             // only display context menu for non-null items
             row.contextMenuProperty().bind(Bindings.when(Bindings.isNotNull(row.itemProperty())).then(rowMenu).otherwise((ContextMenu) null));
+
+            // play on double click
+            row.setOnMouseClicked(event -> {
+                if (event.getClickCount() == 2 && (!row.isEmpty())) {
+                    KnkMedia knkMedia = row.getItem();
+                    play(knkMedia);
+                    row.setStyle("-fx-background-color: red;"); // TODO
+                }
+            });
+
             return row;
         });
     }
@@ -332,6 +355,9 @@ public class MainController extends FxController {
         // copy absolute path to clipboard
         CustomMenuItem copyFullPathMenuItem = createCopyFullPathToClipBoardMenuItem(row);
 
+        // open in explorer
+        CustomMenuItem openExplorerMenuItem = createOpenExplorerMenuItem(row);
+
         // remove media item from playlist
         CustomMenuItem removeMenuItem = createMenuItem("Removes this file from playlist.",
                 "Remove from playlist", event -> removeItem(row.getItem(), false), "removeMenuItem");
@@ -344,7 +370,7 @@ public class MainController extends FxController {
         CustomMenuItem moveMenuItem = createMenuItem("Marks this file to be moved to another destination.",
                 "Move", event -> markMediaForMoving(row.getItem(), false), "moveMenuItem");
 
-        rowMenu.getItems().addAll(copyFileNameMenuItem, copyFullPathMenuItem, removeMenuItem, deleteMenuItem, moveMenuItem);
+        rowMenu.getItems().addAll(copyFileNameMenuItem, copyFullPathMenuItem, openExplorerMenuItem, removeMenuItem, deleteMenuItem, moveMenuItem);
     }
 
 
@@ -386,6 +412,25 @@ public class MainController extends FxController {
         return copyMenuItem;
     }
 
+    private CustomMenuItem createOpenExplorerMenuItem(TableRow<KnkMedia> row) {
+        Label label = GUIUtil.createLabelWithTooltip("Open this item in explorer", "Open in explorer");
+        CustomMenuItem menuItem = new CustomMenuItem(label);
+        menuItem.getStyleClass().add("openExplorerMenuItem");
+
+        menuItem.setOnAction(event -> {
+            try {
+                switch (OSUtils.getOS()) {
+                    case WINDOWS -> Runtime.getRuntime().exec("explorer /select, " + row.getItem().getAbsolutePath());
+                    case LINUX -> Runtime.getRuntime().exec("xdg-open " + row.getItem().getAbsolutePath());
+                    case MAC -> Runtime.getRuntime().exec("open -R " + row.getItem().getAbsolutePath());
+                }
+            } catch (IOException e) {
+                LOGGER.error(e);
+            }
+        });
+
+        return menuItem;
+    }
 
     private void markMediaForDeletion(KnkMedia media) {
         markMediaForDeletion(media, true);
@@ -489,7 +534,7 @@ public class MainController extends FxController {
      */
     private void initPlayListButtons() {
         for (Button btn : playListButtons) {
-            btn.disableProperty().bind(playList.getSelectionModel().selectedItemProperty().isNull());
+            btn.setDisable(true);
         }
 
         emptyPlaylistBtn.setOnAction(event -> emptyPlaylist());
@@ -560,6 +605,14 @@ public class MainController extends FxController {
         }
     }
 
+    private void play(KnkMedia knkMedia) {
+        if (embeddedMediaPlayer != null) {
+            embeddedMediaPlayer.media().play(knkMedia.getAbsolutePath());
+            playList.getSelectionModel().select(knkMedia);
+            currentPlayingMedia = knkMedia;
+        }
+    }
+
     private void stop() {
         if (embeddedMediaPlayer != null) {
             embeddedMediaPlayer.controls().stop();
@@ -583,7 +636,6 @@ public class MainController extends FxController {
     private void emptyPlaylist() {
         stop();
         playList.getItems().clear();
-        countFilesLabel.setText("0 files in playlist");
     }
 
     private void initLogo() {
@@ -596,5 +648,9 @@ public class MainController extends FxController {
         kankaLink.setOnAction(event -> {
             WebUtil.openKankaWebsite();
         });
+    }
+
+    public EmbeddedMediaPlayer getEmbeddedMediaPlayer() {
+        return embeddedMediaPlayer;
     }
 }

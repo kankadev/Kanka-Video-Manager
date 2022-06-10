@@ -4,11 +4,14 @@ import dev.kanka.kankavideomanager.enums.MEDIA_STATUS;
 import dev.kanka.kankavideomanager.pojo.KnkMedia;
 import dev.kanka.kankavideomanager.ui.common.FxController;
 import dev.kanka.kankavideomanager.ui.custom.KnkImageView;
+import dev.kanka.kankavideomanager.utils.AlertUtils;
 import dev.kanka.kankavideomanager.utils.GUIUtil;
 import dev.kanka.kankavideomanager.utils.OSUtils;
 import dev.kanka.kankavideomanager.utils.WebUtil;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleLongProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
 import javafx.event.ActionEvent;
@@ -36,10 +39,7 @@ import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.ResourceBundle;
+import java.util.*;
 
 import static org.kordamp.ikonli.fontawesome5.FontAwesomeRegular.PAUSE_CIRCLE;
 import static org.kordamp.ikonli.fontawesome5.FontAwesomeRegular.PLAY_CIRCLE;
@@ -63,10 +63,16 @@ public class MainController extends FxController {
     private List<Button> controlButtons;
     private List<Button> playListButtons;
 
+    private final List<KnkMedia> toBeDeletedList = new ArrayList<>();
+    private final List<KnkMedia> toBeMovedList = new ArrayList<>();
+
     private final FontIcon pauseIcon = new FontIcon(PAUSE_CIRCLE);
     private final FontIcon playIcon = new FontIcon(PLAY_CIRCLE);
 
     private static KnkMedia currentPlayingMedia;
+
+    private final SimpleIntegerProperty deletedFilesCount = new SimpleIntegerProperty();
+    private final SimpleLongProperty deletedFilesSize = new SimpleLongProperty();
 
     @FXML
     BorderPane borderPane;
@@ -93,7 +99,7 @@ public class MainController extends FxController {
     TableColumn<KnkMedia, Long> durationColumn;
 
     @FXML
-    Label countFilesLabel, volumeIcon, volumeLabel, speedLabel;
+    Label countFilesLabel, volumeIcon, volumeLabel, speedLabel, deletedFilesLabel, movedFilesLabel;
 
     @FXML
     Button emptyPlaylistBtn, processAllFilesBtn;
@@ -125,6 +131,7 @@ public class MainController extends FxController {
         initPlayList();
         initPlayListButtons();
         initDragDropListener();
+        initStatistics();
         initLogo();
     }
 
@@ -153,6 +160,8 @@ public class MainController extends FxController {
                 Platform.runLater(() -> {
                     playPauseBtn.setText("Pause");
                     playPauseBtn.setGraphic(pauseIcon);
+                    // TODO: find a better solution to get the duration...
+                    currentPlayingMedia.setDuration(mediaPlayer.media().info().duration());
                 });
             }
 
@@ -264,6 +273,9 @@ public class MainController extends FxController {
 
             emptyPlaylistBtn.setGraphic(new FontIcon(PLAYLIST_REMOVE));
             processAllFilesBtn.setGraphic(new FontIcon(PLAYLIST_CHECK));
+            processAllFilesBtn.setOnAction(event -> {
+                processAllFiles();
+            });
 
             volumeIcon.setGraphic(new FontIcon(VOLUME_HIGH));
             volumeIcon.setText(null);
@@ -271,6 +283,57 @@ public class MainController extends FxController {
             embeddedMediaPlayer.audio().setVolume((int) volumeSlider.getValue() / 100);
             volumeSlider.valueProperty().addListener((observable, oldValue, newValue) -> embeddedMediaPlayer.audio().setVolume(newValue.intValue()));
         });
+    }
+
+    /**
+     * Handles all files in playlist depending on their status: delete or move
+     */
+    private void processAllFiles() {
+        refreshMediaStatus();
+        stop();
+
+        LOGGER.debug("In toBeDeletedList: " + toBeDeletedList);
+        LOGGER.debug("In toBeMovedList: " + toBeMovedList);
+
+        if (toBeDeletedList.size() > 0 || toBeMovedList.size() > 0) {
+            Alert alert = AlertUtils.confirm("Process all files", "Are you sure to continue?",
+                    toBeDeletedList.size() + " files will be deleted.\n" + toBeMovedList.size() + " files will be moved.");
+            Optional<ButtonType> buttonType = alert.showAndWait();
+
+            if (buttonType.isPresent() && buttonType.get() == ButtonType.OK) {
+
+                for (KnkMedia media : toBeDeletedList) {
+                    long length = media.length();
+                    if (media.delete()) {
+                        deletedFilesCount.set(deletedFilesCount.get() + 1);
+                        deletedFilesSize.set(deletedFilesSize.get() + length);
+                        playList.getItems().remove(media);
+                        LOGGER.debug("Deleted: {}", media);
+                    }
+                }
+
+                for (KnkMedia media : toBeMovedList) {
+                    // TODO: move files
+                }
+            }
+        }
+    }
+
+    private void refreshMediaStatus() {
+        toBeDeletedList.clear();
+        toBeMovedList.clear();
+
+        for (KnkMedia knkMedia : playList.getItems()) {
+            LOGGER.debug(knkMedia);
+
+            String status = knkMedia.getStatus();
+
+            if (status.equals(MEDIA_STATUS.DELETE.getStatus())) {
+                toBeDeletedList.add(knkMedia);
+            } else if (status.equals(MEDIA_STATUS.MOVE.getStatus())) {
+                toBeMovedList.add(knkMedia);
+            }
+        }
     }
 
     private void initPlayList() {
@@ -283,10 +346,11 @@ public class MainController extends FxController {
                 if (status != null && !empty) {
 
                     final ComboBox<MEDIA_STATUS> comboBox = new ComboBox<>(FXCollections.observableArrayList(MEDIA_STATUS.values()));
+                    comboBox.getSelectionModel().select(MEDIA_STATUS.valueOf(status));
                     comboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
                         LOGGER.debug("comboBox selection changed from {} to {}", oldValue, newValue);
+                        getTableRow().getItem().setStatus(newValue);
                     });
-                    comboBox.getSelectionModel().select(MEDIA_STATUS.valueOf(status));
 
                     setGraphic(comboBox);
                     setAlignment(Pos.CENTER);
@@ -591,31 +655,42 @@ public class MainController extends FxController {
             event.setDropCompleted(success);
             event.consume();
 
-//            currentPlayingMediaIndex = 0;
-//
-//            playMedia();
-//            updateInformations();
+            play();
         });
     }
 
     private void play() {
         if (embeddedMediaPlayer != null) {
-//            embeddedMediaPlayer.controls().play();
-            embeddedMediaPlayer.media().play(playList.getItems().get(0).getAbsolutePath());
+
+            switch (embeddedMediaPlayer.status().state()) {
+                case PLAYING, PAUSED -> embeddedMediaPlayer.controls().pause();
+                default -> {
+                    if (currentPlayingMedia == null) {
+                        KnkMedia knkMedia = playList.getItems().get(0);
+                        currentPlayingMedia = knkMedia;
+                    }
+                    embeddedMediaPlayer.media().play(currentPlayingMedia.getAbsolutePath());
+                }
+            }
         }
     }
 
     private void play(KnkMedia knkMedia) {
         if (embeddedMediaPlayer != null) {
-            embeddedMediaPlayer.media().play(knkMedia.getAbsolutePath());
-            playList.getSelectionModel().select(knkMedia);
-            currentPlayingMedia = knkMedia;
+            if (knkMedia != null) {
+                embeddedMediaPlayer.media().play(knkMedia.getAbsolutePath());
+                playList.getSelectionModel().select(knkMedia);
+                currentPlayingMedia = knkMedia;
+            }
         }
     }
 
     private void stop() {
         if (embeddedMediaPlayer != null) {
             embeddedMediaPlayer.controls().stop();
+            timeSlider.setValue(0);
+            playPauseBtn.setText("Play");
+            playPauseBtn.setGraphic(playIcon);
         }
     }
 
@@ -635,7 +710,16 @@ public class MainController extends FxController {
 
     private void emptyPlaylist() {
         stop();
-        playList.getItems().clear();
+
+        Alert alert = AlertUtils.confirm("Empty playlist", "Are you sure to continue?",
+                "All items will be removed from the playlist.");
+        Optional<ButtonType> buttonType = alert.showAndWait();
+
+        // TODO maybe... implement more information like: you have items in playlist with changed status
+
+        if (buttonType.isPresent() && buttonType.get() == ButtonType.OK) {
+            playList.getItems().clear();
+        }
     }
 
     private void initLogo() {
@@ -650,7 +734,35 @@ public class MainController extends FxController {
         });
     }
 
+    private void initStatistics() {
+        deletedFilesLabel.textProperty().bind(Bindings.format("Deleted files: %d (%d)", deletedFilesCountProperty(), deletedFilesSizeProperty())); // TODO format filesize human readable
+    }
+
     public EmbeddedMediaPlayer getEmbeddedMediaPlayer() {
         return embeddedMediaPlayer;
+    }
+
+    public int getDeletedFilesCount() {
+        return deletedFilesCount.get();
+    }
+
+    public SimpleIntegerProperty deletedFilesCountProperty() {
+        return deletedFilesCount;
+    }
+
+    public void setDeletedFilesCount(int deletedFilesCount) {
+        this.deletedFilesCount.set(deletedFilesCount);
+    }
+
+    public long getDeletedFilesSize() {
+        return deletedFilesSize.get();
+    }
+
+    public SimpleLongProperty deletedFilesSizeProperty() {
+        return deletedFilesSize;
+    }
+
+    public void setDeletedFilesSize(long deletedFilesSize) {
+        this.deletedFilesSize.set(deletedFilesSize);
     }
 }

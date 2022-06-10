@@ -122,8 +122,8 @@
    <top>
       <HBox spacing="10.0" BorderPane.alignment="CENTER">
          <children>
-            <Label text="Label" />
-            <Label text="Label" />
+            <Label fx:id="deletedFilesLabel" text="Deleted Files: 0" />
+            <Label fx:id="movedFilesLabel" text="Moved Files: 0" />
             <Label text="Label" />
          </children>
          <padding>

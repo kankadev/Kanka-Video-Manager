@@ -7,14 +7,10 @@
 /*
 BUTTONS
 */
-.btn {
-    -fx-border-style: none;
-    -fx-border-width: 0;
-    -fx-border-insets: 0;
-}
-
-.btn-primary {
+.button {
     -fx-background-color: -fx-primary;
+    -fx-text-fill: #fff;
+    -fx-padding: 7;
 }
 
 /*
@@ -34,4 +30,28 @@ ImageViews
 */
 .knkLogo {
     -fx-cursor: hand;
+}
+
+/**
+Slider
+*/
+.slider .track {
+    -fx-background-color: -fx-yellow;
+}
+
+.slider .thumb {
+    -fx-background-color: -fx-primary;
+    -fx-pref-height: 20;
+    -fx-pref-width: 20;
+}
+
+/**
+HBox in the top
+*/
+.topHbox {
+    -fx-background-color: -fx-secondary;
+}
+
+.topHbox .label {
+    -fx-text-fill: #fff;
 }

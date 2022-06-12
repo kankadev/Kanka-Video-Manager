@@ -18,7 +18,7 @@
     <bottom>
       <VBox>
          <children>
-            <Slider fx:id="timeSlider" showTickMarks="true">
+            <Slider fx:id="timeSlider" minorTickCount="0" showTickMarks="true">
                <padding>
                   <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                </padding>
@@ -120,7 +120,7 @@
         <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Text" BorderPane.alignment="CENTER" />
     </right>
    <top>
-      <HBox spacing="10.0" BorderPane.alignment="CENTER">
+      <HBox spacing="10.0" styleClass="topHbox" BorderPane.alignment="CENTER">
          <children>
             <Label fx:id="deletedFilesLabel" text="Deleted Files: 0" />
             <Label fx:id="movedFilesLabel" text="Moved Files: 0" />

@@ -60,6 +60,7 @@
                                 <TableColumn fx:id="pathNameColumn" prefWidth="500.0" text="File" />
                                 <TableColumn fx:id="fileSizeColumn" prefWidth="150" text="File Size" />
                            <TableColumn fx:id="durationColumn" prefWidth="150" text="Duration" />
+                           <TableColumn fx:id="commentColumn" prefWidth="150" text="Comment" />
                             </columns>
                             <columnResizePolicy>
                                 <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />

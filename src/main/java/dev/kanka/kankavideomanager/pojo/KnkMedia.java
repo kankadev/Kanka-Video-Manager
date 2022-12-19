@@ -14,6 +14,7 @@ public class KnkMedia extends File {
     private final ReadOnlyStringWrapper pathName;
     private final ReadOnlyStringWrapper fileSize;
     private final ReadOnlyLongWrapper duration;
+    private final ReadOnlyStringWrapper comment;
 
 
     public KnkMedia(String pathname) {
@@ -23,6 +24,7 @@ public class KnkMedia extends File {
         this.fileSize = new ReadOnlyStringWrapper(MediaUtil.humanReadableByteCountBin(super.length()));
         // TODO use setConverter on GUI (extends StringConverter...)
         this.duration = new ReadOnlyLongWrapper();
+        this.comment = new ReadOnlyStringWrapper();
     }
 
     public String getStatus() {
@@ -76,6 +78,20 @@ public class KnkMedia extends File {
     public void setDuration(long duration) {
         this.duration.set(duration);
     }
+
+
+    public String getComment() {
+        return comment.get();
+    }
+
+    public ReadOnlyStringWrapper commentProperty() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment.set(comment);
+    }
+
 
     @Override
     public boolean equals(Object o) {

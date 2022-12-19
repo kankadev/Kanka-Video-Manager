@@ -8,17 +8,17 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.JavaFXBuilderFactory;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.util.Objects;
 
 
 public class App extends Application {
-
     private static final Logger LOGGER = LogManager.getLogger();
-
 
     @Override
     public final void start(Stage primaryStage) throws IOException {
@@ -40,6 +40,7 @@ public class App extends Application {
         primaryStage.setMinHeight(650);
         primaryStage.setMaximized(true);
         primaryStage.setOnCloseRequest(event -> Platform.exit());
+        primaryStage.getIcons().add(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/dev/kanka/kankavideomanager/icons/icon.png"))));
         primaryStage.show();
     }
 

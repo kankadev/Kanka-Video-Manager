@@ -19,10 +19,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.TransferMode;
+import javafx.scene.input.*;
 import javafx.scene.layout.BorderPane;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -86,7 +83,7 @@ public class MainController extends FxController {
     TableView<KnkMedia> playList;
 
     @FXML
-    TableColumn<KnkMedia, String> statusColumn, pathNameColumn, fileSizeColumn;
+    TableColumn<KnkMedia, String> statusColumn, pathNameColumn, fileSizeColumn, commentColumn;
 
     @FXML
     TableColumn<KnkMedia, Long> durationColumn;
@@ -229,6 +226,13 @@ public class MainController extends FxController {
             float rate = embeddedMediaPlayer.status().rate();
             LOGGER.debug("Current speed/rate: {}", rate);
         });
+        speedSlider.setOnMouseClicked(event -> {
+            if (event.getButton().equals(MouseButton.PRIMARY)) {
+                if (event.getClickCount() == 2) {
+                    speedSlider.setValue(1);
+                }
+            }
+        });
     }
 
     /**
@@ -240,19 +244,24 @@ public class MainController extends FxController {
         }
 
         Platform.runLater(() -> {
+            // Play
             playPauseBtn.setText("Play");
             playPauseBtn.setGraphic(new FontIcon(PLAY_CIRCLE));
             playPauseBtn.setOnAction(event -> play());
 
+            // Stop
             stopBtn.setOnAction(event -> stop());
             stopBtn.setGraphic(new FontIcon(STOP_CIRCLE));
 
+            // Previous
             previousBtn.setGraphic(new FontIcon(SKIP_PREVIOUS));
             previousBtn.setOnAction(event -> previous());
 
+            // Next
             nextBtn.setGraphic(new FontIcon(SKIP_NEXT));
             nextBtn.setOnAction(event -> next());
 
+            // Skip buttons
             skipBackwardBtn.setGraphic(new FontIcon(SKIP_BACKWARD));
             skipBackwardBtn.setOnAction(event -> {
                 if (embeddedMediaPlayer != null && embeddedMediaPlayer.media().info() != null) {
@@ -266,23 +275,45 @@ public class MainController extends FxController {
                 }
             });
 
+            // Delete Button
             deleteBtn.setGraphic(new FontIcon(DELETE));
             deleteBtn.setOnAction(event -> markMediaForDeletion(currentPlayingMedia));
 
+            // Move button
             moveBtn.setGraphic(new FontIcon(FILE_MOVE));
             moveBtn.setOnAction(event -> markMediaForMoving(currentPlayingMedia));
 
+            // Empty Playlist
             emptyPlaylistBtn.setGraphic(new FontIcon(PLAYLIST_REMOVE));
+
+            // Process all files
             processAllFilesBtn.setGraphic(new FontIcon(PLAYLIST_CHECK));
             processAllFilesBtn.setOnAction(event -> {
                 processAllFiles();
             });
 
+            // Volume
             volumeIcon.setGraphic(new FontIcon(VOLUME_HIGH));
             volumeIcon.setText(null);
             volumeLabel.textProperty().bind(Bindings.format("%.0f", volumeSlider.valueProperty()));
             embeddedMediaPlayer.audio().setVolume((int) volumeSlider.getValue() / 100);
             volumeSlider.valueProperty().addListener((observable, oldValue, newValue) -> embeddedMediaPlayer.audio().setVolume(newValue.intValue()));
+            volumeSlider.setOnMouseClicked(event -> {
+                if (event.getButton().equals(MouseButton.PRIMARY)) {
+                    if (event.getClickCount() == 2) {
+                        volumeSlider.setValue(100);
+                    }
+                }
+            });
+
+            // Timeline Slider
+            // TODO: not working like before
+//            timeSlider.setOnMouseClicked(event -> {
+//                if (embeddedMediaPlayer.status().isPlaying() && !timeSlider.isValueChanging()) {
+//                    LOGGER.debug(timeSlider.getValue());
+//                    embeddedMediaPlayer.controls().setPosition((float) timeSlider.getValue());
+//                }
+//            });
         });
     }
 
@@ -318,6 +349,32 @@ public class MainController extends FxController {
 
         // duration column
         durationColumn.setCellValueFactory(new PropertyValueFactory<>("duration"));
+
+        // comment column
+        commentColumn.setCellValueFactory(new PropertyValueFactory<>("comment"));
+        commentColumn.setCellFactory(param -> new TableCell<>() {
+            @Override
+            protected void updateItem(String comment, boolean empty) {
+                LOGGER.debug("comment: {}, empty: {}", comment, empty);
+
+                // TODO ..............
+
+                if (!empty) {
+                    final TextField textField = new TextField(comment);
+                    textField.textProperty().addListener((observable, oldValue, newValue) -> {
+                        getTableRow().getItem().setComment(newValue);
+                    });
+
+                    setGraphic(textField);
+                    setAlignment(Pos.CENTER);
+
+                } else {
+                    setGraphic(null);
+                    setText(null);
+                }
+
+            }
+        });
 
         playList.itemsProperty().addListener((observable, oldItems, newItems) -> {
             countFilesLabel.textProperty().bind(

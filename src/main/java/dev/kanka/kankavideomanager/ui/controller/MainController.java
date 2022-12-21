@@ -25,6 +25,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.kordamp.ikonli.javafx.FontIcon;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
+import uk.co.caprica.vlcj.javafx.videosurface.ImageViewVideoSurface;
 import uk.co.caprica.vlcj.javafx.view.ResizableImageView;
 import uk.co.caprica.vlcj.media.MediaRef;
 import uk.co.caprica.vlcj.player.base.MediaPlayer;
@@ -44,7 +45,6 @@ import static org.kordamp.ikonli.materialdesign2.MaterialDesignP.PLAYLIST_CHECK;
 import static org.kordamp.ikonli.materialdesign2.MaterialDesignP.PLAYLIST_REMOVE;
 import static org.kordamp.ikonli.materialdesign2.MaterialDesignS.*;
 import static org.kordamp.ikonli.materialdesign2.MaterialDesignV.VOLUME_HIGH;
-import static uk.co.caprica.vlcj.javafx.videosurface.ImageViewVideoSurfaceFactory.videoSurfaceForImageView;
 
 public class MainController extends FxController {
 
@@ -208,7 +208,7 @@ public class MainController extends FxController {
         KnkImageView videoImageView = new KnkImageView();
         ResizableImageView resizableImageView = new ResizableImageView(videoImageView);
         videoImageView.setPreserveRatio(true);
-        this.embeddedMediaPlayer.videoSurface().set(videoSurfaceForImageView(videoImageView));
+        this.embeddedMediaPlayer.videoSurface().set(new ImageViewVideoSurface(videoImageView));
         resizableImageView.getStyleClass().add("knkImageView");
 
         borderPane.setCenter(resizableImageView);

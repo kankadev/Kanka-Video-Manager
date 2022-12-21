@@ -36,6 +36,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static org.kordamp.ikonli.fontawesome5.FontAwesomeRegular.PAUSE_CIRCLE;
 import static org.kordamp.ikonli.fontawesome5.FontAwesomeRegular.PLAY_CIRCLE;
@@ -152,7 +153,7 @@ public class MainController extends FxController {
                 Platform.runLater(() -> {
                     playPauseBtn.setText("Pause");
                     playPauseBtn.setGraphic(pauseIcon);
-                    // TODO: find a better solution to get the duration...
+                    // TODO: find a better solution to get the duration... not here in playing... immediately after adding to the playlist
                     currentPlayingMedia.setDuration(duration);
                 });
             }
@@ -184,7 +185,7 @@ public class MainController extends FxController {
 
             @Override
             public void timeChanged(MediaPlayer mediaPlayer, long newTime) {
-                LOGGER.debug("newTime: {}", newTime);
+                //LOGGER.debug("newTime: {}", newTime);
                 timeSlider.setValue(newTime);
             }
 
@@ -307,13 +308,16 @@ public class MainController extends FxController {
             });
 
             // Timeline Slider
-            // TODO: not working like before
-//            timeSlider.setOnMouseClicked(event -> {
-//                if (embeddedMediaPlayer.status().isPlaying() && !timeSlider.isValueChanging()) {
-//                    LOGGER.debug(timeSlider.getValue());
-//                    embeddedMediaPlayer.controls().setPosition((float) timeSlider.getValue());
-//                }
-//            });
+            // TODO: not working properly
+            timeSlider.setOnMouseClicked(event -> {
+                if (embeddedMediaPlayer.status().isPlaying()) {
+                    float pos = (float) (timeSlider.getValue() / timeSlider.getMax());
+                    LOGGER.debug("max: {}", timeSlider.getMax());
+                    LOGGER.debug("current: {}", timeSlider.getValue());
+                    LOGGER.debug("desired pos: {}", pos);
+                    embeddedMediaPlayer.controls().setPosition(pos);
+                }
+            });
         });
     }
 
@@ -349,6 +353,22 @@ public class MainController extends FxController {
 
         // duration column
         durationColumn.setCellValueFactory(new PropertyValueFactory<>("duration"));
+        durationColumn.setCellFactory(param -> new TableCell<>() {
+            @Override
+            protected void updateItem(Long duration, boolean empty) {
+                if (duration != null && !empty) {
+                    String durationString = String.format("%02d:%02d:%02d",
+                            TimeUnit.MILLISECONDS.toHours(duration),
+                            TimeUnit.MILLISECONDS.toMinutes(duration) - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(duration)),
+                            TimeUnit.MILLISECONDS.toSeconds(duration) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(duration))
+                    );
+                    setText(durationString);
+                } else {
+                    setGraphic(null);
+                    setText(null);
+                }
+            }
+        });
 
         // comment column
         commentColumn.setCellValueFactory(new PropertyValueFactory<>("comment"));

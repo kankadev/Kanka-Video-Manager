@@ -853,11 +853,18 @@ public class MainController extends FxController {
     private void emptyPlaylist() {
         stop();
 
-        Alert alert = AlertUtils.confirm("Empty playlist", "Are you sure to continue?",
-                "All items will be removed from the playlist.");
-        Optional<ButtonType> buttonType = alert.showAndWait();
+        boolean onlyUnprocessedFilesInPlaylist = true;
+        for (KnkMedia media : playList.getItems()) {
+            if (!MEDIA_STATUS.UNPROCESSED.equals(MEDIA_STATUS.valueOf(media.getStatus()))) {
+                onlyUnprocessedFilesInPlaylist = false;
+                break;
+            }
+        }
 
-        // TODO maybe... implement more information like: you have items in playlist with changed status
+        Alert alert = AlertUtils.confirm("Empty playlist", "Are you sure to continue?",
+                "All items will be removed from the playlist." + (!onlyUnprocessedFilesInPlaylist
+                        ? " There are files in the list whose status is changed. If you continue, no files will be deleted or moved." : ""));
+        Optional<ButtonType> buttonType = alert.showAndWait();
 
         if (buttonType.isPresent() && buttonType.get() == ButtonType.OK) {
             playList.getItems().clear();

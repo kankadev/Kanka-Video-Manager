@@ -8,9 +8,12 @@ module dev.kanka.kankavideomanager {
     requires org.kordamp.ikonli.javafx;
     requires org.kordamp.ikonli.fontawesome5;
     requires org.kordamp.ikonli.materialdesign2;
+    requires com.dlsc.formsfx;
+    requires com.dlsc.preferencesfx;
 
     opens dev.kanka.kankavideomanager to javafx.fxml;
     opens dev.kanka.kankavideomanager.ui.controller to javafx.fxml;
     opens dev.kanka.kankavideomanager.pojo to javafx.base;
     exports dev.kanka.kankavideomanager;
+    opens dev.kanka.kankavideomanager.settings to javafx.fxml;
 }

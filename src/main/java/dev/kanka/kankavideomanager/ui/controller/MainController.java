@@ -2,6 +2,7 @@ package dev.kanka.kankavideomanager.ui.controller;
 
 import dev.kanka.kankavideomanager.enums.MEDIA_STATUS;
 import dev.kanka.kankavideomanager.pojo.KnkMedia;
+import dev.kanka.kankavideomanager.settings.SettingsController;
 import dev.kanka.kankavideomanager.ui.common.FxController;
 import dev.kanka.kankavideomanager.ui.custom.KnkImageView;
 import dev.kanka.kankavideomanager.utils.*;
@@ -75,6 +76,9 @@ public class MainController extends FxController {
     BorderPane borderPane;
 
     @FXML
+    MenuItem settingsMenuItem;
+
+    @FXML
     Slider timeSlider, volumeSlider, speedSlider;
 
     @FXML
@@ -124,6 +128,8 @@ public class MainController extends FxController {
         initDragDropListener();
         initStatistics();
         initLogo();
+
+        settingsMenuItem.setOnAction(event -> new SettingsController());
     }
 
 

@@ -1,7 +1,9 @@
 package dev.kanka.kankavideomanager.settings;
 
-import com.dlsc.formsfx.model.validators.IntegerRangeValidator;
+import com.dlsc.formsfx.model.structure.Field;
+import com.dlsc.formsfx.model.structure.IntegerField;
 import com.dlsc.preferencesfx.PreferencesFx;
+import com.dlsc.preferencesfx.formsfx.view.controls.IntegerSliderControl;
 import com.dlsc.preferencesfx.model.Category;
 import com.dlsc.preferencesfx.model.Group;
 import com.dlsc.preferencesfx.model.Setting;
@@ -17,14 +19,18 @@ public class SettingsController extends StackPane {
 
     public PreferencesFx preferencesFx;
 
-    // General settings
-
     // Play settings
-    IntegerProperty skipForwardBy = new SimpleIntegerProperty(20);
+    IntegerProperty skipForwardByProperty = new SimpleIntegerProperty(20);
+    IntegerField skipForwardByControl = Field.ofIntegerType(skipForwardByProperty).render(new IntegerSliderControl(1, 99));
+
+
     IntegerProperty volumeProperty = new SimpleIntegerProperty(100);
+    IntegerField volumeControl = Field.ofIntegerType(volumeProperty).render(
+            new IntegerSliderControl(0, 100));
+
 
     // Move settings
-    ObjectProperty<File> moveDestination = new SimpleObjectProperty<>();
+    ObjectProperty<File> moveDestinationProperty = new SimpleObjectProperty<>();
 
     public SettingsController() {
         preferencesFx = createPreferences();
@@ -33,23 +39,17 @@ public class SettingsController extends StackPane {
 
     private PreferencesFx createPreferences() {
         return PreferencesFx.of(SettingsController.class,
-                Category.of("General"
-                ),
                 Category.of("Play",
                         Group.of("Volume",
-                                Setting.of("Default volume at program start", volumeProperty, 0, 100)
-                                        .validate(IntegerRangeValidator.between(0, 100, "Must be between 0 and 100"))
+                                Setting.of("Default volume at program start", volumeControl, volumeProperty)
                         ),
                         Group.of("Skip",
-                                Setting.of("Skip forward by <value> percent", skipForwardBy, 1, 99)
-                                        .validate(IntegerRangeValidator
-                                                .between(1, 99, "Must be between 1 and 99")
-                                        )
+                                Setting.of("Skip forward by <value> percent", skipForwardByControl, skipForwardByProperty)
                         )),
 
                 Category.of("Move",
                         Group.of("Move",
-                                Setting.of("Where to move the files", moveDestination, "Choose directory", null, true)
+                                Setting.of("Where to move the files", moveDestinationProperty, "Choose directory", null, true)
                         )
                 )
         ).persistWindowState(false).saveSettings(true).debugHistoryMode(false).buttonsVisibility(true);
@@ -57,26 +57,26 @@ public class SettingsController extends StackPane {
 
 
     public int getSkipForwardBy() {
-        return skipForwardBy.get();
+        return skipForwardByProperty.get();
     }
 
     public IntegerProperty skipForwardByProperty() {
-        return skipForwardBy;
+        return skipForwardByProperty;
     }
 
-    public int getVolumeProperty() {
+    public int getVolume() {
         return volumeProperty.get();
     }
 
-    public IntegerProperty volumePropertyProperty() {
+    public IntegerProperty volumeProperty() {
         return volumeProperty;
     }
 
     public File getMoveDestination() {
-        return moveDestination.get();
+        return moveDestinationProperty.get();
     }
 
     public ObjectProperty<File> moveDestinationProperty() {
-        return moveDestination;
+        return moveDestinationProperty;
     }
 }

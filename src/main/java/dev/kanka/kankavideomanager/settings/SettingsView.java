@@ -1,13 +1,10 @@
 package dev.kanka.kankavideomanager.settings;
 
 import com.dlsc.preferencesfx.PreferencesFx;
-import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-
-import java.util.stream.Collectors;
 
 
 public class SettingsView extends VBox {
@@ -119,20 +116,6 @@ public class SettingsView extends VBox {
     }
 
     private void setupBindings() {
-        welcomeLbl.textProperty().bind(settingsController.welcomeText);
-        brightnessLbl.textProperty().bind(settingsController.brightness.asString().concat("%"));
-        nightModeLbl.textProperty().bind(settingsController.nightMode.asString());
-        scalingLbl.textProperty().bind(settingsController.scaling.asString());
-        screenNameLbl.textProperty().bind(settingsController.screenName);
-        resolutionLbl.textProperty().bind(settingsController.resolutionSelection);
-        orientationLbl.textProperty().bind(settingsController.orientationSelection);
-        favoritesLbl.textProperty().bind(Bindings.createStringBinding(
-                () -> settingsController.favoritesSelection.stream().collect(Collectors.joining(", ")),
-                settingsController.favoritesSelection
-        ));
-        fontSizeLbl.textProperty().bind(settingsController.fontSize.asString());
-        lineSpacingLbl.textProperty().bind(settingsController.lineSpacing.asString());
-        favoriteNumberLbl.textProperty().bind(settingsController.customControlProperty.asString());
     }
 
     private void setupEventHandlers() {
@@ -140,13 +123,13 @@ public class SettingsView extends VBox {
     }
 
     private void setupListeners() {
-        settingsController.nightMode.addListener((observable, oldValue, newValue) -> {
-            if (newValue) {
+//        settingsController.nightMode.addListener((observable, oldValue, newValue) -> {
+//            if (newValue) {
 //                getStylesheets().add(AppStarter.class.getResource("darkTheme.css").toExternalForm());
-            } else {
+//            } else {
 //                getStylesheets().remove(AppStarter.class.getResource("darkTheme.css").toExternalForm());
-            }
-        });
+//            }
+//        });
 
         instantPersistence.selectedProperty().addListener((observable, oldPersistence, newPersistence) -> {
             preferencesFx.instantPersistent(newPersistence);

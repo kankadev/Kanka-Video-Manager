@@ -36,6 +36,8 @@ import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -72,11 +74,13 @@ public class MainController extends FxController {
     private final SimpleLongProperty deletedFilesSize = new SimpleLongProperty();
     private final SimpleIntegerProperty movedFilesCount = new SimpleIntegerProperty();
 
+    private SettingsController settingsController = new SettingsController();
+
     @FXML
     BorderPane borderPane;
 
     @FXML
-    MenuItem settingsMenuItem;
+    MenuItem settingsMenuItem, aboutMenuItem;
 
     @FXML
     Slider timeSlider, volumeSlider, speedSlider;
@@ -129,7 +133,7 @@ public class MainController extends FxController {
         initStatistics();
         initLogo();
 
-        settingsMenuItem.setOnAction(event -> new SettingsController());
+        settingsMenuItem.setOnAction(event -> settingsController.preferencesFx.show(true));
     }
 
 
@@ -278,7 +282,11 @@ public class MainController extends FxController {
             skipForwardBtn.setGraphic(new FontIcon(SKIP_FORWARD));
             skipForwardBtn.setOnAction(event -> {
                 if (embeddedMediaPlayer != null && embeddedMediaPlayer.media().info() != null) {
-                    embeddedMediaPlayer.controls().skipTime((embeddedMediaPlayer.media().info().duration() / 20));
+
+                    long duration = embeddedMediaPlayer.media().info().duration();
+                    int skipForwardBy = settingsController.getSkipForwardBy();
+                    long delta = (long) (duration * (skipForwardBy / 100.0));
+                    embeddedMediaPlayer.controls().skipTime(delta);
                 }
             });
 
@@ -305,10 +313,11 @@ public class MainController extends FxController {
             volumeLabel.textProperty().bind(Bindings.format("%.0f", volumeSlider.valueProperty()));
             embeddedMediaPlayer.audio().setVolume((int) volumeSlider.getValue() / 100);
             volumeSlider.valueProperty().addListener((observable, oldValue, newValue) -> embeddedMediaPlayer.audio().setVolume(newValue.intValue()));
+            volumeSlider.setValue(settingsController.getVolumeProperty());
             volumeSlider.setOnMouseClicked(event -> {
                 if (event.getButton().equals(MouseButton.PRIMARY)) {
                     if (event.getClickCount() == 2) {
-                        volumeSlider.setValue(100);
+                        volumeSlider.setValue(settingsController.getVolumeProperty());
                     }
                 }
             });
@@ -544,22 +553,41 @@ public class MainController extends FxController {
             Optional<ButtonType> buttonType = alert.showAndWait();
 
             if (buttonType.isPresent() && buttonType.get() == ButtonType.OK) {
-
                 for (KnkMedia media : toBeDeletedList) {
                     long length = media.length();
                     if (media.delete()) {
                         deletedFilesCount.set(deletedFilesCount.get() + 1);
                         deletedFilesSize.set(deletedFilesSize.get() + length);
-                        playList.getItems().remove(media);
+                        Platform.runLater(() -> playList.getItems().remove(media));
                         LOGGER.debug("Deleted: {}", media);
+                    } else {
+                        LOGGER.error("Couldn't be deleted: {}", media);
                     }
                 }
 
                 for (KnkMedia media : toBeMovedList) {
-                    // TODO: move files
-                    movedFilesCount.set(movedFilesCount.get() + 1);
-                    playList.getItems().remove(media);
-                    LOGGER.debug("Moved: {}", media);
+                    // TODO: move files, show alert if there is no path in the settings... or open the settings directly?
+
+                    if (media.exists()) {
+                        boolean error = false;
+
+                        try {
+                            Path desiredFilePath = new File(settingsController.getMoveDestination() + File.separator + media.getName()).toPath();
+                            Path newFilePath = Files.move(media.toPath(), desiredFilePath);
+                            LOGGER.debug(media + " is moved to " + newFilePath);
+                        } catch (IOException e) {
+                            LOGGER.error("Moving file {} failed. {}", media, e);
+                            error = true;
+                        }
+
+                        if (!error) {
+                            Platform.runLater(() -> {
+                                movedFilesCount.set(movedFilesCount.get() + 1);
+                                playList.getItems().remove(media);
+                                LOGGER.debug("Moved: {}", media);
+                            });
+                        }
+                    }
                 }
             }
         }
@@ -810,7 +838,7 @@ public class MainController extends FxController {
                 play(previousMedia);
             } else {
                 // No previous media file exists
-                // TODO: show notification about reaching the top of the playlist
+                // TODO: show notification about reaching the top of the playlist and create a Binding and disable the prev button
             }
         }
     }
@@ -828,7 +856,7 @@ public class MainController extends FxController {
                 play(nextMedia);
             } else {
                 // No next media file exists
-                // TODO show a notification
+                // TODO show a notification a la "End of playlist. Wanna process all files?" and create a binding for disabling the next button
             }
         }
     }
@@ -859,13 +887,7 @@ public class MainController extends FxController {
     private void emptyPlaylist() {
         stop();
 
-        boolean onlyUnprocessedFilesInPlaylist = true;
-        for (KnkMedia media : playList.getItems()) {
-            if (!MEDIA_STATUS.UNPROCESSED.equals(MEDIA_STATUS.valueOf(media.getStatus()))) {
-                onlyUnprocessedFilesInPlaylist = false;
-                break;
-            }
-        }
+        boolean onlyUnprocessedFilesInPlaylist = isOnlyUnprocessedFilesInPlaylist();
 
         Alert alert = AlertUtils.confirm("Empty playlist", "Are you sure to continue?",
                 "All items will be removed from the playlist." + (!onlyUnprocessedFilesInPlaylist
@@ -875,6 +897,17 @@ public class MainController extends FxController {
         if (buttonType.isPresent() && buttonType.get() == ButtonType.OK) {
             playList.getItems().clear();
         }
+    }
+
+    private boolean isOnlyUnprocessedFilesInPlaylist() {
+        boolean onlyUnprocessedFilesInPlaylist = true;
+        for (KnkMedia media : playList.getItems()) {
+            if (!MEDIA_STATUS.UNPROCESSED.equals(MEDIA_STATUS.valueOf(media.getStatus()))) {
+                onlyUnprocessedFilesInPlaylist = false;
+                break;
+            }
+        }
+        return onlyUnprocessedFilesInPlaylist;
     }
 
     public EmbeddedMediaPlayer getEmbeddedMediaPlayer() {

@@ -74,13 +74,13 @@ public class MainController extends FxController {
     private final SimpleLongProperty deletedFilesSize = new SimpleLongProperty();
     private final SimpleIntegerProperty movedFilesCount = new SimpleIntegerProperty();
 
-    private SettingsController settingsController = new SettingsController();
+    private final SettingsController settingsController = new SettingsController();
 
     @FXML
     BorderPane borderPane;
 
     @FXML
-    MenuItem settingsMenuItem, aboutMenuItem;
+    MenuItem settingsMenuItem, aboutMenuItem, closeMenuItem;
 
     @FXML
     Slider timeSlider, volumeSlider, speedSlider;
@@ -134,6 +134,7 @@ public class MainController extends FxController {
         initLogo();
 
         settingsMenuItem.setOnAction(event -> settingsController.preferencesFx.show(true));
+        closeMenuItem.setOnAction(event -> Platform.exit());
     }
 
 
@@ -303,9 +304,7 @@ public class MainController extends FxController {
 
             // Process all files
             processAllFilesBtn.setGraphic(new FontIcon(PLAYLIST_CHECK));
-            processAllFilesBtn.setOnAction(event -> {
-                processAllFiles();
-            });
+            processAllFilesBtn.setOnAction(event -> processAllFiles());
 
             // Volume
             volumeIcon.setGraphic(new FontIcon(VOLUME_HIGH));
@@ -313,11 +312,11 @@ public class MainController extends FxController {
             volumeLabel.textProperty().bind(Bindings.format("%.0f", volumeSlider.valueProperty()));
             embeddedMediaPlayer.audio().setVolume((int) volumeSlider.getValue() / 100);
             volumeSlider.valueProperty().addListener((observable, oldValue, newValue) -> embeddedMediaPlayer.audio().setVolume(newValue.intValue()));
-            volumeSlider.setValue(settingsController.getVolumeProperty());
+            volumeSlider.setValue(settingsController.getVolume());
             volumeSlider.setOnMouseClicked(event -> {
                 if (event.getButton().equals(MouseButton.PRIMARY)) {
                     if (event.getClickCount() == 2) {
-                        volumeSlider.setValue(settingsController.getVolumeProperty());
+                        volumeSlider.setValue(settingsController.getVolume());
                     }
                 }
             });
@@ -396,9 +395,7 @@ public class MainController extends FxController {
 
                 if (!empty) {
                     final TextField textField = new TextField(comment);
-                    textField.textProperty().addListener((observable, oldValue, newValue) -> {
-                        getTableRow().getItem().setComment(newValue);
-                    });
+                    textField.textProperty().addListener((observable, oldValue, newValue) -> getTableRow().getItem().setComment(newValue));
 
                     setGraphic(textField);
                     setAlignment(Pos.CENTER);
@@ -612,9 +609,6 @@ public class MainController extends FxController {
 
     /**
      * Creates menu items for the context menu for each row in the playlist.
-     *
-     * @param row
-     * @param rowMenu
      */
     private void createMenuItemsForContextMenuInPlayList(TableRow<KnkMedia> row, ContextMenu rowMenu) {
         // copy filename to clipboard
@@ -645,7 +639,6 @@ public class MainController extends FxController {
     /**
      * Creates a menu item which copies the file name to the clipboard.
      *
-     * @param row
      * @return menu item
      */
     private CustomMenuItem createCopyFileNameToClipBoardMenuItem(TableRow<KnkMedia> row) {
@@ -663,9 +656,6 @@ public class MainController extends FxController {
 
     /**
      * Creates a menu item which copies the absolute path to the clipboard.
-     *
-     * @param row
-     * @return
      */
     private CustomMenuItem createCopyFullPathToClipBoardMenuItem(TableRow<KnkMedia> row) {
         Label copyLabel = GUIUtil.createLabelWithTooltip("Copy absolute path to clipboard", "Copy full path");
@@ -707,8 +697,7 @@ public class MainController extends FxController {
     /**
      * Sets the status of the media to be deleted.
      *
-     * @param media
-     * @param skip  skips to the next media file if true
+     * @param skip skips to the next media file if true
      */
     private void markMediaForDeletion(KnkMedia media, boolean skip) {
         LOGGER.debug("Mark for deletion: {}", media);
@@ -728,8 +717,7 @@ public class MainController extends FxController {
     /**
      * Sets the status of the media to be moved to another location.
      *
-     * @param media
-     * @param skip  skips to the next media file in playlist if true
+     * @param skip skips to the next media file in playlist if true
      */
     private void markMediaForMoving(KnkMedia media, boolean skip) {
         LOGGER.debug("Mark for moving: {}", media);
@@ -745,10 +733,6 @@ public class MainController extends FxController {
     /**
      * Creates a menu item.
      *
-     * @param tooltipText
-     * @param labelText
-     * @param actionEventEventHandler
-     * @param styleClass
      * @return created menu item
      */
     private CustomMenuItem createMenuItem(String tooltipText, String labelText, EventHandler<ActionEvent> actionEventEventHandler, String styleClass) {
@@ -763,7 +747,6 @@ public class MainController extends FxController {
     /**
      * Removes item from playlist and skips to the next media in playlist.
      *
-     * @param media
      * @return true if item was removed from playlist successfully, otherwise false
      */
     private boolean removeItem(KnkMedia media) {
@@ -773,8 +756,7 @@ public class MainController extends FxController {
     /**
      * Removes item from playlist.
      *
-     * @param media
-     * @param skip  skip to the next media in playlist if true
+     * @param skip skip to the next media in playlist if true
      * @return true if item was removed from playlist successfully, otherwise false
      */
     private boolean removeItem(KnkMedia media, boolean skip) {
@@ -804,8 +786,7 @@ public class MainController extends FxController {
                 case PLAYING, PAUSED -> embeddedMediaPlayer.controls().pause();
                 default -> {
                     if (currentPlayingMedia == null) {
-                        KnkMedia knkMedia = playList.getItems().get(0);
-                        currentPlayingMedia = knkMedia;
+                        currentPlayingMedia = playList.getItems().get(0);
                         currentPlayingIndex.set(playList.getItems().indexOf(currentPlayingMedia));
                     }
                     embeddedMediaPlayer.media().play(currentPlayingMedia.getAbsolutePath());

@@ -16,7 +16,6 @@ import javafx.collections.ObservableSet;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
@@ -260,6 +259,7 @@ public class MainController extends FxController {
             playPauseBtn.setText("Play");
             playPauseBtn.setGraphic(new FontIcon(PLAY_CIRCLE));
             playPauseBtn.setOnAction(event -> play());
+            playPauseBtn.setMinWidth(70.0);
 
             // Stop
             stopBtn.setOnAction(event -> stop());
@@ -322,9 +322,9 @@ public class MainController extends FxController {
             });
 
             // Timeline Slider
-            // TODO: not working properly
             timeSlider.setOnMouseClicked(event -> {
                 if (embeddedMediaPlayer.status().isPlaying()) {
+                    // TODO and if it's not playing? Jump to the desired position and play...
                     float pos = (float) (timeSlider.getValue() / timeSlider.getMax());
                     LOGGER.debug("max: {}", timeSlider.getMax());
                     LOGGER.debug("current: {}", timeSlider.getValue());
@@ -351,7 +351,6 @@ public class MainController extends FxController {
                     });
 
                     setGraphic(comboBox);
-                    setAlignment(Pos.CENTER);
                 } else {
                     setGraphic(null);
                     setText(null);
@@ -391,20 +390,17 @@ public class MainController extends FxController {
             protected void updateItem(String comment, boolean empty) {
                 LOGGER.debug("comment: {}, empty: {}", comment, empty);
 
-                // TODO ..............
+                // TODO https://github.com/kankadev/Kanka-Video-Manager/issues/10
 
                 if (!empty) {
                     final TextField textField = new TextField(comment);
                     textField.textProperty().addListener((observable, oldValue, newValue) -> getTableRow().getItem().setComment(newValue));
 
                     setGraphic(textField);
-                    setAlignment(Pos.CENTER);
-
                 } else {
                     setGraphic(null);
                     setText(null);
                 }
-
             }
         });
 
@@ -429,9 +425,22 @@ public class MainController extends FxController {
 
         });
 
-        // create context menu for each row
+
         playList.setRowFactory(tableView -> {
-            final TableRow<KnkMedia> row = new TableRow<>();
+            final TableRow<KnkMedia> row = new TableRow<>() {
+                @Override
+                protected void updateItem(KnkMedia knkMedia, boolean empty) {
+                    super.updateItem(knkMedia, empty);
+
+                    if (currentPlayingMedia.equals(knkMedia)) {
+                        getStyleClass().add("current_playing_row");
+                    } else {
+                        getStyleClass().remove("current_playing_row");
+                        playList.refresh(); // TODO works fine here but the context menu doesn't open up since this function call
+                    }
+                }
+            };
+
             final ContextMenu rowMenu = new ContextMenu();
             createMenuItemsForContextMenuInPlayList(row, rowMenu);
 
@@ -442,6 +451,7 @@ public class MainController extends FxController {
             row.setOnMouseClicked(event -> {
                 if (event.getClickCount() == 2 && (!row.isEmpty())) {
                     KnkMedia knkMedia = row.getItem();
+                    embeddedMediaPlayer.controls().stop();
                     play(knkMedia);
                 }
             });
@@ -538,6 +548,10 @@ public class MainController extends FxController {
      * Handles all files in playlist depending on their status: delete or move
      */
     private void processAllFiles() {
+        processAllFiles(null);
+    }
+
+    private void processAllFiles(String alertText) {
         refreshMediaStatus();
         stop();
 
@@ -546,7 +560,7 @@ public class MainController extends FxController {
 
         if (toBeDeletedList.size() > 0 || toBeMovedList.size() > 0) {
             Alert alert = AlertUtils.confirm("Process all files", "Are you sure to continue?",
-                    toBeDeletedList.size() + " files will be deleted.\n" + toBeMovedList.size() + " files will be moved.");
+                    (!alertText.isEmpty() ? alertText + "\n\n" : "") + toBeDeletedList.size() + " files will be deleted.\n" + toBeMovedList.size() + " files will be moved.");
             Optional<ButtonType> buttonType = alert.showAndWait();
 
             if (buttonType.isPresent() && buttonType.get() == ButtonType.OK) {
@@ -779,29 +793,31 @@ public class MainController extends FxController {
         return playList.getItems().isEmpty();
     }
 
+    // TODO refactor both play() functions
     private void play() {
+        play(null);
+    }
+
+    private void play(KnkMedia knkMedia) {
         if (embeddedMediaPlayer != null) {
 
             switch (embeddedMediaPlayer.status().state()) {
                 case PLAYING, PAUSED -> embeddedMediaPlayer.controls().pause();
                 default -> {
+
+                    if (knkMedia != null) {
+                        currentPlayingMedia = knkMedia;
+                    }
+
                     if (currentPlayingMedia == null) {
                         currentPlayingMedia = playList.getItems().get(0);
-                        currentPlayingIndex.set(playList.getItems().indexOf(currentPlayingMedia));
                     }
-                    embeddedMediaPlayer.media().play(currentPlayingMedia.getAbsolutePath());
-                }
-            }
-        }
-    }
 
-    private void play(KnkMedia knkMedia) {
-        if (embeddedMediaPlayer != null) {
-            if (knkMedia != null) {
-                embeddedMediaPlayer.media().play(knkMedia.getAbsolutePath());
-                playList.getSelectionModel().select(knkMedia);
-                currentPlayingMedia = knkMedia;
-                currentPlayingIndex.set(playList.getItems().indexOf(currentPlayingMedia));
+                    currentPlayingIndex.set(playList.getItems().indexOf(currentPlayingMedia));
+                    embeddedMediaPlayer.media().play(currentPlayingMedia.getAbsolutePath());
+                    playList.getSelectionModel().select(currentPlayingMedia);
+                    playList.scrollTo(currentPlayingIndex.get());
+                }
             }
         }
     }
@@ -813,13 +829,16 @@ public class MainController extends FxController {
         ObservableList<KnkMedia> medias = playList.getItems();
         if (currentPlayingMedia != null && medias != null && !medias.isEmpty()) {
             int index = medias.indexOf(currentPlayingMedia);
-            KnkMedia previousMedia = medias.get(index - 1);
 
-            if (previousMedia != null) {
-                play(previousMedia);
-            } else {
-                // No previous media file exists
-                // TODO: show notification about reaching the top of the playlist and create a Binding and disable the prev button
+            try {
+                KnkMedia previousMedia = medias.get(index - 1);
+
+                if (previousMedia != null) {
+                    embeddedMediaPlayer.controls().stop();
+                    play(previousMedia);
+                }
+            } catch (IndexOutOfBoundsException ex) {
+
             }
         }
     }
@@ -831,13 +850,15 @@ public class MainController extends FxController {
         ObservableList<KnkMedia> medias = playList.getItems();
         if (currentPlayingMedia != null && medias != null && !medias.isEmpty()) {
             int index = medias.indexOf(currentPlayingMedia);
-            KnkMedia nextMedia = medias.get(index + 1);
 
-            if (nextMedia != null && medias.size() >= index + 1) {
-                play(nextMedia);
-            } else {
-                // No next media file exists
-                // TODO show a notification a la "End of playlist. Wanna process all files?" and create a binding for disabling the next button
+            try {
+                KnkMedia nextMedia = medias.get(index + 1);
+                if (nextMedia != null && medias.size() >= index + 1) {
+                    embeddedMediaPlayer.controls().stop();
+                    play(nextMedia);
+                }
+            } catch (IndexOutOfBoundsException ex) {
+                processAllFiles("You have reached the end of the playlist. You can now process all files marked for deletion and moving. ");
             }
         }
     }

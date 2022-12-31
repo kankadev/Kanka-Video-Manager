@@ -2,6 +2,7 @@
    -fx-primary: #5786a3;
    -fx-secondary: #4b4e50;
    -fx-yellow: #edc02e;
+   -fx-white: #fff;
 }
 
 /*
@@ -9,7 +10,7 @@ BUTTONS
 */
 .button {
     -fx-background-color: -fx-primary;
-    -fx-text-fill: #fff;
+    -fx-text-fill: -fx-white;
     -fx-padding: 7;
 }
 
@@ -53,5 +54,29 @@ HBox in the top
 }
 
 .topHbox .label {
-    -fx-text-fill: #fff;
+    -fx-text-fill: -fx-white;
+}
+
+/**
+PlayList
+*/
+
+.table-view .current_playing_row .table-cell {
+    -fx-text-fill: -fx-white;
+}
+
+.table-view .current_playing_row {
+    -fx-background-color: -fx-primary;
+}
+
+.table-row-cell:selected {
+   -fx-background-color: -fx-yellow;
+}
+
+.table-row-cell:selected .table-cell {
+    -fx-text-fill: -fx-secondary;
+}
+
+.table-row-cell .table-column {
+    -fx-alignment: CENTER-LEFT;
 }

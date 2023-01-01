@@ -560,7 +560,7 @@ public class MainController extends FxController {
 
         if (toBeDeletedList.size() > 0 || toBeMovedList.size() > 0) {
             Alert alert = AlertUtils.confirm("Process all files", "Are you sure to continue?",
-                    (!alertText.isEmpty() ? alertText + "\n\n" : "") + toBeDeletedList.size() + " files will be deleted.\n" + toBeMovedList.size() + " files will be moved.");
+                    (alertText != null && !alertText.isEmpty() ? alertText + "\n\n" : "") + toBeDeletedList.size() + " files will be deleted.\n" + toBeMovedList.size() + " files will be moved.");
             Optional<ButtonType> buttonType = alert.showAndWait();
 
             if (buttonType.isPresent() && buttonType.get() == ButtonType.OK) {
@@ -813,10 +813,12 @@ public class MainController extends FxController {
                         currentPlayingMedia = playList.getItems().get(0);
                     }
 
-                    currentPlayingIndex.set(playList.getItems().indexOf(currentPlayingMedia));
-                    embeddedMediaPlayer.media().play(currentPlayingMedia.getAbsolutePath());
-                    playList.getSelectionModel().select(currentPlayingMedia);
-                    playList.scrollTo(currentPlayingIndex.get());
+                    if (currentPlayingMedia.exists()) {
+                        currentPlayingIndex.set(playList.getItems().indexOf(currentPlayingMedia));
+                        embeddedMediaPlayer.media().play(currentPlayingMedia.getAbsolutePath());
+                        playList.getSelectionModel().select(currentPlayingMedia);
+                        playList.scrollTo(currentPlayingIndex.get());
+                    }
                 }
             }
         }

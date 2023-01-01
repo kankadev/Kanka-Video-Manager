@@ -29,23 +29,24 @@ public class App extends Application {
         Parent pane = fxmlLoader.load();
         Scene scene = new Scene(pane);
         scene.getStylesheets().add(getClass().getResource("/dev/kanka/kankavideomanager/css/main.css").toExternalForm());
-
-//        MainController controller = fxmlLoader.getController();
         MainController.getInstance().setHostServices(getHostServices());
-//        controller.setHostServices(getHostServices());
 
         primaryStage.setTitle("Kanka Video Manager");
         primaryStage.setScene(scene);
         primaryStage.setMinWidth(750);
         primaryStage.setMinHeight(650);
         primaryStage.setMaximized(true);
-        primaryStage.setOnCloseRequest(event -> Platform.exit());
+        primaryStage.setOnCloseRequest(event -> {
+            LOGGER.debug("close request");
+            Platform.exit();
+        });
         primaryStage.getIcons().add(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/dev/kanka/kankavideomanager/icons/icon.png"))));
         primaryStage.show();
     }
 
     @Override
     public final void stop() {
+        LOGGER.debug("close()");
         MainController.getInstance().stopAndRelease();
     }
 

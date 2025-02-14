@@ -59,7 +59,11 @@ public class MainController extends FxController {
     private MediaPlayerFactory mediaPlayerFactory;
     private EmbeddedMediaPlayer embeddedMediaPlayer;
     private static KnkMedia currentPlayingMedia;
-    private final SimpleIntegerProperty currentPlayingIndex = new SimpleIntegerProperty(); // TODO use this property to determine if is current media the first or last in the list and disable previous or next buttons
+    private final SimpleIntegerProperty currentPlayingIndex = new SimpleIntegerProperty(); // TODO use this property to
+                                                                                           // determine if is current
+                                                                                           // media the first or last in
+                                                                                           // the list and disable
+                                                                                           // previous or next buttons
     private final List<KnkMedia> toBeDeletedList = new ArrayList<>();
     private final List<KnkMedia> toBeMovedList = new ArrayList<>();
 
@@ -120,7 +124,8 @@ public class MainController extends FxController {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        controlButtons = FXCollections.observableArrayList(playPauseBtn, stopBtn, previousBtn, nextBtn, skipBackwardBtn, skipForwardBtn, deleteBtn, moveBtn);
+        controlButtons = FXCollections.observableArrayList(playPauseBtn, stopBtn, previousBtn, nextBtn, skipBackwardBtn,
+                skipForwardBtn, deleteBtn, moveBtn);
         playListButtons = FXCollections.observableArrayList(emptyPlaylistBtn, processAllFilesBtn);
 
         initPlayer();
@@ -135,7 +140,6 @@ public class MainController extends FxController {
         settingsMenuItem.setOnAction(event -> settingsController.preferencesFx.show(true));
         closeMenuItem.setOnAction(event -> Platform.exit());
     }
-
 
     /**
      * setup player and its listeners
@@ -163,7 +167,8 @@ public class MainController extends FxController {
                 Platform.runLater(() -> {
                     playPauseBtn.setText("Pause");
                     playPauseBtn.setGraphic(pauseIcon);
-                    // TODO: find a better solution to get the duration... not here in playing... immediately after adding to the playlist
+                    // TODO: find a better solution to get the duration... not here in playing...
+                    // immediately after adding to the playlist
                     currentPlayingMedia.setDuration(duration);
                 });
             }
@@ -195,7 +200,7 @@ public class MainController extends FxController {
 
             @Override
             public void timeChanged(MediaPlayer mediaPlayer, long newTime) {
-                //LOGGER.debug("newTime: {}", newTime);
+                // LOGGER.debug("newTime: {}", newTime);
                 timeSlider.setValue(newTime);
             }
 
@@ -311,7 +316,8 @@ public class MainController extends FxController {
             volumeIcon.setText(null);
             volumeLabel.textProperty().bind(Bindings.format("%.0f", volumeSlider.valueProperty()));
             embeddedMediaPlayer.audio().setVolume((int) volumeSlider.getValue() / 100);
-            volumeSlider.valueProperty().addListener((observable, oldValue, newValue) -> embeddedMediaPlayer.audio().setVolume(newValue.intValue()));
+            volumeSlider.valueProperty().addListener(
+                    (observable, oldValue, newValue) -> embeddedMediaPlayer.audio().setVolume(newValue.intValue()));
             volumeSlider.setValue(settingsController.getVolume());
             volumeSlider.setOnMouseClicked(event -> {
                 if (event.getButton().equals(MouseButton.PRIMARY)) {
@@ -343,12 +349,14 @@ public class MainController extends FxController {
             protected void updateItem(String status, boolean empty) {
 
                 if (status != null && !empty) {
-                    final ComboBox<MEDIA_STATUS> comboBox = new ComboBox<>(FXCollections.observableArrayList(MEDIA_STATUS.values()));
+                    final ComboBox<MEDIA_STATUS> comboBox = new ComboBox<>(
+                            FXCollections.observableArrayList(MEDIA_STATUS.values()));
                     comboBox.getSelectionModel().select(MEDIA_STATUS.valueOf(status));
-                    comboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-                        LOGGER.debug("comboBox selection changed from {} to {}", oldValue, newValue);
-                        getTableRow().getItem().setStatus(newValue);
-                    });
+                    comboBox.getSelectionModel().selectedItemProperty()
+                            .addListener((observable, oldValue, newValue) -> {
+                                LOGGER.debug("comboBox selection changed from {} to {}", oldValue, newValue);
+                                getTableRow().getItem().setStatus(newValue);
+                            });
 
                     setGraphic(comboBox);
                 } else {
@@ -372,9 +380,10 @@ public class MainController extends FxController {
                 if (duration != null && !empty) {
                     String durationString = String.format("%02d:%02d:%02d",
                             TimeUnit.MILLISECONDS.toHours(duration),
-                            TimeUnit.MILLISECONDS.toMinutes(duration) - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(duration)),
-                            TimeUnit.MILLISECONDS.toSeconds(duration) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(duration))
-                    );
+                            TimeUnit.MILLISECONDS.toMinutes(duration)
+                                    - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(duration)),
+                            TimeUnit.MILLISECONDS.toSeconds(duration)
+                                    - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(duration)));
                     setText(durationString);
                 } else {
                     setGraphic(null);
@@ -394,7 +403,8 @@ public class MainController extends FxController {
 
                 if (!empty) {
                     final TextField textField = new TextField(comment);
-                    textField.textProperty().addListener((observable, oldValue, newValue) -> getTableRow().getItem().setComment(newValue));
+                    textField.textProperty().addListener(
+                            (observable, oldValue, newValue) -> getTableRow().getItem().setComment(newValue));
 
                     setGraphic(textField);
                 } else {
@@ -415,7 +425,8 @@ public class MainController extends FxController {
             for (Button btn : controlButtons) {
                 if (btn == nextBtn) {
                     // TODO
-                    btn.disableProperty().bind(Bindings.isEmpty(newItems).or(Bindings.equal(currentPlayingIndexProperty(), playList.getItems().size() - 1)));
+                    btn.disableProperty().bind(Bindings.isEmpty(newItems)
+                            .or(Bindings.equal(currentPlayingIndexProperty(), playList.getItems().size() - 1)));
                 } else if (btn == previousBtn) {
                     btn.disableProperty().bind(Bindings.isEmpty(newItems).or(Bindings.equal(currentPlayingIndex, 0)));
                 } else {
@@ -424,7 +435,6 @@ public class MainController extends FxController {
             }
 
         });
-
 
         playList.setRowFactory(tableView -> {
             final TableRow<KnkMedia> row = new TableRow<>() {
@@ -436,7 +446,8 @@ public class MainController extends FxController {
                         getStyleClass().add("current_playing_row");
                     } else {
                         getStyleClass().remove("current_playing_row");
-                        playList.refresh(); // TODO works fine here but the context menu doesn't open up since this function call
+                        playList.refresh(); // TODO works fine here but the context menu doesn't open up since this
+                                            // function call
                     }
                 }
             };
@@ -445,7 +456,8 @@ public class MainController extends FxController {
             createMenuItemsForContextMenuInPlayList(row, rowMenu);
 
             // only display context menu for non-null items
-            row.contextMenuProperty().bind(Bindings.when(Bindings.isNotNull(row.itemProperty())).then(rowMenu).otherwise((ContextMenu) null));
+            row.contextMenuProperty().bind(
+                    Bindings.when(Bindings.isNotNull(row.itemProperty())).then(rowMenu).otherwise((ContextMenu) null));
 
             // play on double click
             row.setOnMouseClicked(event -> {
@@ -481,7 +493,6 @@ public class MainController extends FxController {
             }
             event.consume();
         });
-
 
         playList.setOnDragDropped(event -> {
             Dragboard dragboard = event.getDragboard();
@@ -531,11 +542,9 @@ public class MainController extends FxController {
                 () -> String.format(
                         "Deleted files: %d (%s)",
                         deletedFilesCountProperty().get(),
-                        FileUtils.humanReadableByteCount(deletedFilesSizeProperty().get(), true)
-                ),
+                        FileUtils.humanReadableByteCount(deletedFilesSizeProperty().get(), true)),
                 deletedFilesCountProperty(),
-                deletedFilesSizeProperty()
-        ));
+                deletedFilesSizeProperty()));
     }
 
     private void initLogo() {
@@ -560,7 +569,8 @@ public class MainController extends FxController {
 
         if (toBeDeletedList.size() > 0 || toBeMovedList.size() > 0) {
             Alert alert = AlertUtils.confirm("Process all files", "Are you sure to continue?",
-                    (alertText != null && !alertText.isEmpty() ? alertText + "\n\n" : "") + toBeDeletedList.size() + " files will be deleted.\n" + toBeMovedList.size() + " files will be moved.");
+                    (alertText != null && !alertText.isEmpty() ? alertText + "\n\n" : "") + toBeDeletedList.size()
+                            + " files will be deleted.\n" + toBeMovedList.size() + " files will be moved.");
             Optional<ButtonType> buttonType = alert.showAndWait();
 
             if (buttonType.isPresent() && buttonType.get() == ButtonType.OK) {
@@ -577,13 +587,16 @@ public class MainController extends FxController {
                 }
 
                 for (KnkMedia media : toBeMovedList) {
-                    // TODO: move files, show alert if there is no path in the settings... or open the settings directly?
+                    // TODO: move files, show alert if there is no path in the settings... or open
+                    // the settings directly?
 
                     if (media.exists()) {
                         boolean error = false;
 
                         try {
-                            Path desiredFilePath = new File(settingsController.getMoveDestination() + File.separator + media.getName()).toPath();
+                            Path desiredFilePath = new File(
+                                    settingsController.getMoveDestination() + File.separator + media.getName())
+                                    .toPath();
                             Path newFilePath = Files.move(media.toPath(), desiredFilePath);
                             LOGGER.debug(media + " is moved to " + newFilePath);
                         } catch (IOException e) {
@@ -632,7 +645,7 @@ public class MainController extends FxController {
         CustomMenuItem copyFullPathMenuItem = createCopyFullPathToClipBoardMenuItem(row);
 
         // open in explorer
-        CustomMenuItem openExplorerMenuItem = createOpenExplorerMenuItem(row);
+        MenuItem openExplorerMenuItem = createOpenExplorerMenuItem(row);
 
         // remove media item from playlist
         CustomMenuItem removeMenuItem = createMenuItem("Removes this file from playlist.",
@@ -646,9 +659,9 @@ public class MainController extends FxController {
         CustomMenuItem moveMenuItem = createMenuItem("Marks this file to be moved to another destination.",
                 "Move", event -> markMediaForMoving(row.getItem(), false), "moveMenuItem");
 
-        rowMenu.getItems().addAll(copyFileNameMenuItem, copyFullPathMenuItem, openExplorerMenuItem, removeMenuItem, deleteMenuItem, moveMenuItem);
+        rowMenu.getItems().addAll(copyFileNameMenuItem, copyFullPathMenuItem, openExplorerMenuItem, removeMenuItem,
+                deleteMenuItem, moveMenuItem);
     }
-
 
     /**
      * Creates a menu item which copies the file name to the clipboard.
@@ -684,20 +697,41 @@ public class MainController extends FxController {
         return copyMenuItem;
     }
 
-    private CustomMenuItem createOpenExplorerMenuItem(TableRow<KnkMedia> row) {
+    private MenuItem createOpenExplorerMenuItem(TableRow<KnkMedia> row) {
+        LOGGER.debug("Creating explorer menu item");
         Label label = GUIUtil.createLabelWithTooltip("Open this item in explorer", "Open in explorer");
         CustomMenuItem menuItem = new CustomMenuItem(label);
         menuItem.getStyleClass().add("openExplorerMenuItem");
 
         menuItem.setOnAction(event -> {
-            try {
-                switch (OSUtils.getOS()) {
-                    case WINDOWS -> Runtime.getRuntime().exec("explorer /select, " + row.getItem().getAbsolutePath());
-                    case LINUX -> Runtime.getRuntime().exec("xdg-open " + row.getItem().getAbsolutePath());
-                    case MAC -> Runtime.getRuntime().exec("open -R " + row.getItem().getAbsolutePath());
+            LOGGER.debug("Explorer menu item clicked");
+            KnkMedia media = row.getItem();
+            LOGGER.debug("Media item: {}", media);
+            if (media != null) {
+                try {
+                    switch (OSUtils.getOS()) {
+                        case WINDOWS -> {
+                            LOGGER.debug("Executing Windows explorer command for: {}", media.getAbsolutePath());
+                            new ProcessBuilder("explorer", "/select,", media.getAbsolutePath()).start();
+                        }
+                        case LINUX -> {
+                            LOGGER.debug("Executing Linux xdg-open command for: {}", media.getAbsolutePath());
+                            new ProcessBuilder("xdg-open", media.getAbsolutePath()).start();
+                        }
+                        case MAC -> {
+                            LOGGER.debug("Executing Mac open command for: {}", media.getAbsolutePath());
+                            new ProcessBuilder("open", "-R", media.getAbsolutePath()).start();
+                        }
+                        case SOLARIS -> {
+                            LOGGER.debug("Executing Solaris xdg-open command for: {}", media.getAbsolutePath());
+                            new ProcessBuilder("xdg-open", media.getAbsolutePath()).start();
+                        }
+                    }
+                } catch (IOException e) {
+                    LOGGER.error("Failed to open explorer: ", e);
                 }
-            } catch (IOException e) {
-                LOGGER.error(e);
+            } else {
+                LOGGER.warn("Media item is null");
             }
         });
 
@@ -749,14 +783,14 @@ public class MainController extends FxController {
      *
      * @return created menu item
      */
-    private CustomMenuItem createMenuItem(String tooltipText, String labelText, EventHandler<ActionEvent> actionEventEventHandler, String styleClass) {
+    private CustomMenuItem createMenuItem(String tooltipText, String labelText,
+            EventHandler<ActionEvent> actionEventEventHandler, String styleClass) {
         Label removeLabel = GUIUtil.createLabelWithTooltip(tooltipText, labelText);
         CustomMenuItem customMenuItem = new CustomMenuItem(removeLabel);
         customMenuItem.getStyleClass().add(styleClass);
         customMenuItem.setOnAction(actionEventEventHandler);
         return customMenuItem;
     }
-
 
     /**
      * Removes item from playlist and skips to the next media in playlist.
@@ -779,7 +813,7 @@ public class MainController extends FxController {
             removed = playList.getItems().remove(media);
         }
         if (skip) {
-//            next(); // TODO
+            // next(); // TODO
         }
         return removed;
     }
@@ -860,7 +894,8 @@ public class MainController extends FxController {
                     play(nextMedia);
                 }
             } catch (IndexOutOfBoundsException ex) {
-                processAllFiles("You have reached the end of the playlist. You can now process all files marked for deletion and moving. ");
+                processAllFiles(
+                        "You have reached the end of the playlist. You can now process all files marked for deletion and moving. ");
             }
         }
     }
@@ -895,7 +930,8 @@ public class MainController extends FxController {
 
         Alert alert = AlertUtils.confirm("Empty playlist", "Are you sure to continue?",
                 "All items will be removed from the playlist." + (!onlyUnprocessedFilesInPlaylist
-                        ? " There are files in the list whose status is changed. If you continue, no files will be deleted or moved." : ""));
+                        ? " There are files in the list whose status is changed. If you continue, no files will be deleted or moved."
+                        : ""));
         Optional<ButtonType> buttonType = alert.showAndWait();
 
         if (buttonType.isPresent() && buttonType.get() == ButtonType.OK) {

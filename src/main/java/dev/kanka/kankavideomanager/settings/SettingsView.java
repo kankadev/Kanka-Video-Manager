@@ -6,7 +6,6 @@ import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
-
 public class SettingsView extends VBox {
     private PreferencesFx preferencesFx;
     private MenuBar menuBar;
@@ -76,8 +75,7 @@ public class SettingsView extends VBox {
                 fontSizeLbl,
                 lineSpacingLbl,
                 favoriteNumberLbl,
-                instantPersistence
-        );
+                instantPersistence);
         instantPersistence.setSelected(true);
         valueBox.setSpacing(20);
         valueBox.setPadding(new Insets(20, 0, 0, 20));
@@ -94,8 +92,7 @@ public class SettingsView extends VBox {
                 new Label("Font Size:"),
                 new Label("Line Spacing:"),
                 new Label("Favorite Number:"),
-                new Label("Instant Persistence:")
-        );
+                new Label("Instant Persistence:"));
         descriptionBox.setSpacing(20);
         descriptionBox.setPadding(new Insets(20, 0, 0, 20));
 
@@ -104,15 +101,10 @@ public class SettingsView extends VBox {
                 menuBar,
                 new HBox(
                         descriptionBox,
-                        valueBox
-                )
-        );
+                        valueBox));
 
         // Styling
         getStyleClass().add("demo-view");
-//        if (settingsController.nightMode.get()) {
-//            getStylesheets().add(AppStarter.class.getResource("darkTheme.css").toExternalForm());
-//        }
     }
 
     private void setupBindings() {
@@ -123,14 +115,6 @@ public class SettingsView extends VBox {
     }
 
     private void setupListeners() {
-//        settingsController.nightMode.addListener((observable, oldValue, newValue) -> {
-//            if (newValue) {
-//                getStylesheets().add(AppStarter.class.getResource("darkTheme.css").toExternalForm());
-//            } else {
-//                getStylesheets().remove(AppStarter.class.getResource("darkTheme.css").toExternalForm());
-//            }
-//        });
-
         instantPersistence.selectedProperty().addListener((observable, oldPersistence, newPersistence) -> {
             preferencesFx.instantPersistent(newPersistence);
         });

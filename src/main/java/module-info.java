@@ -1,6 +1,6 @@
 module dev.kanka.kankavideomanager {
     requires javafx.controls;
-    requires javafx.graphics;
+    requires transitive javafx.graphics;
     requires javafx.fxml;
     requires uk.co.caprica.vlcj;
     requires uk.co.caprica.vlcj.javafx;
@@ -14,6 +14,8 @@ module dev.kanka.kankavideomanager {
     opens dev.kanka.kankavideomanager to javafx.fxml;
     opens dev.kanka.kankavideomanager.ui.controller to javafx.fxml;
     opens dev.kanka.kankavideomanager.pojo to javafx.base;
+
     exports dev.kanka.kankavideomanager;
+
     opens dev.kanka.kankavideomanager.settings to javafx.fxml;
 }

@@ -15,12 +15,14 @@ public class WebUtil {
     }
 
     public static void openWebsite(String url) {
+        LOGGER.debug("Opening website: {}", url);
         if (url != null && !url.isEmpty()) {
             MainController.getInstance().getHostServices().showDocument(url);
         }
     }
 
     public static void openKankaWebsite() {
+        LOGGER.debug("Opening Kanka website");
         openWebsite("https://kanka.dev?src=KankaVideoManager");
     }
 }

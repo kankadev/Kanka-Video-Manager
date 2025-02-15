@@ -16,7 +16,6 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.util.Objects;
 
-
 public class App extends Application {
     private static final Logger LOGGER = LogManager.getLogger();
 
@@ -40,7 +39,8 @@ public class App extends Application {
             LOGGER.debug("close request");
             Platform.exit();
         });
-        primaryStage.getIcons().add(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/dev/kanka/kankavideomanager/icons/icon.png"))));
+        primaryStage.getIcons()
+                .add(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/dev/kanka/kankavideomanager/icons/icon.png"))));
         primaryStage.show();
     }
 
@@ -53,6 +53,5 @@ public class App extends Application {
     public static void main(String[] args) {
         launch(args);
     }
-
 
 }

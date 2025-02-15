@@ -2,6 +2,7 @@ package dev.kanka.kankavideomanager.pojo;
 
 import dev.kanka.kankavideomanager.enums.MEDIA_STATUS;
 import dev.kanka.kankavideomanager.utils.MediaUtil;
+import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyLongWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 
@@ -15,7 +16,7 @@ public class KnkMedia extends File {
     private final ReadOnlyStringWrapper fileSize;
     private final ReadOnlyLongWrapper duration;
     private final ReadOnlyStringWrapper comment;
-
+    private final ReadOnlyIntegerWrapper detectedPersons;
 
     public KnkMedia(String pathname) {
         super(pathname);
@@ -25,6 +26,7 @@ public class KnkMedia extends File {
         // TODO use setConverter on GUI (extends StringConverter...)
         this.duration = new ReadOnlyLongWrapper();
         this.comment = new ReadOnlyStringWrapper();
+        this.detectedPersons = new ReadOnlyIntegerWrapper();
     }
 
     public String getStatus() {
@@ -79,7 +81,6 @@ public class KnkMedia extends File {
         this.duration.set(duration);
     }
 
-
     public String getComment() {
         return comment.get();
     }
@@ -92,14 +93,29 @@ public class KnkMedia extends File {
         this.comment.set(comment);
     }
 
+    public int getDetectedPersons() {
+        return detectedPersons.get();
+    }
+
+    public ReadOnlyIntegerWrapper detectedPersonsProperty() {
+        return detectedPersons;
+    }
+
+    public void setDetectedPersons(int detectedPersons) {
+        this.detectedPersons.set(detectedPersons);
+    }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        if (!super.equals(o))
+            return false;
         KnkMedia knkMedia = (KnkMedia) o;
-        return status.equals(knkMedia.status) && pathName.equals(knkMedia.pathName) && fileSize.equals(knkMedia.fileSize);
+        return status.equals(knkMedia.status) && pathName.equals(knkMedia.pathName)
+                && fileSize.equals(knkMedia.fileSize);
     }
 
     @Override

@@ -1,8 +1,8 @@
 * {
-   -fx-primary: #5786a3;
-   -fx-secondary: #4b4e50;
-   -fx-yellow: #edc02e;
-   -fx-white: #fff;
+    -fx-primary: #2c5c81;
+    -fx-secondary: #4b4e50;
+    -fx-yellow: #ffff8a;
+    -fx-white: #fff;
 }
 
 /*
@@ -18,11 +18,11 @@ BUTTONS
 ComboBox
 */
 .combo-box *,
-.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell .label {
+.combo-box-popup>.list-view>.virtual-flow>.clipped-container>.sheet>.list-cell .label {
     -fx-text-fill: -fx-secondary;
 }
 
-.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:selected .label {
+.combo-box-popup>.list-view>.virtual-flow>.clipped-container>.sheet>.list-cell:selected .label {
     -fx-text-fill: -fx-primary;
 }
 
@@ -38,6 +38,8 @@ Slider
 */
 .slider .track {
     -fx-background-color: -fx-yellow;
+    -fx-border-color: -fx-primary;
+    -fx-border-width: 1;
 }
 
 .slider .thumb {
@@ -70,7 +72,7 @@ PlayList
 }
 
 .table-row-cell:selected {
-   -fx-background-color: -fx-yellow;
+    -fx-background-color: -fx-yellow;
 }
 
 .table-row-cell:selected .table-cell {

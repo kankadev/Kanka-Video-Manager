@@ -614,7 +614,7 @@ public class MainController extends FxController {
         LOGGER.debug("In toBeDeletedList: " + toBeDeletedList);
         LOGGER.debug("In toBeMovedList: " + toBeMovedList);
 
-        if (toBeDeletedList.size() > 0 || toBeMovedList.size() > 0) {
+        if (!toBeDeletedList.isEmpty() || !toBeMovedList.isEmpty()) {
             Alert alert = AlertUtils.confirm("Process all files", "Are you sure to continue?",
                     (alertText != null && !alertText.isEmpty() ? alertText + "\n\n" : "") + toBeDeletedList.size()
                             + " files will be deleted.\n" + toBeMovedList.size() + " files will be moved.");

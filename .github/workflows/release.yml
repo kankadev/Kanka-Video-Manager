@@ -23,23 +23,6 @@ jobs:
     - name: Build with Maven
       run: mvn clean package -DskipTests
       
-    - name: Create native installer with jpackage
-      run: |
-        jpackage `
-          --input target `
-          --name "KankaVideoManager" `
-          --main-class dev.kanka.kankavideomanager.App `
-          --main-jar kanka-video-manager-1.0-SNAPSHOT-all.jar `
-          --type msi `
-          --app-version 1.0.0 `
-          --vendor "Kanka" `
-          --description "Video manager for sorting surveillance videos" `
-          --win-console `
-          --win-menu `
-          --win-shortcut `
-          --add-modules "javafx.controls,javafx.fxml,javafx.graphics,javafx.media"
-      shell: pwsh
-      
     - name: Get version from tag
       id: get_version
       run: |
@@ -56,9 +39,7 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v1
       with:
-        files: |
-          target/kanka-video-manager-${{ steps.get_version.outputs.version }}-all.jar
-          *.msi
+        files: target/kanka-video-manager-${{ steps.get_version.outputs.version }}-all.jar
         draft: false
         prerelease: false
       env:

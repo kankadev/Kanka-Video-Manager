@@ -1,5 +1,6 @@
 package dev.kanka.kankavideomanager;
 
+import dev.kanka.kankavideomanager.constants.Constants;
 import dev.kanka.kankavideomanager.ui.common.FxmlFile;
 import dev.kanka.kankavideomanager.ui.controller.MainController;
 import javafx.application.Application;
@@ -32,8 +33,8 @@ public class App extends Application {
 
         primaryStage.setTitle("Kanka Video Manager");
         primaryStage.setScene(scene);
-        primaryStage.setMinWidth(750);
-        primaryStage.setMinHeight(650);
+        primaryStage.setMinWidth(Constants.MIN_WINDOW_WIDTH);
+        primaryStage.setMinHeight(Constants.MIN_WINDOW_HEIGHT);
         primaryStage.setMaximized(true);
         primaryStage.setOnCloseRequest(event -> {
             LOGGER.debug("close request");

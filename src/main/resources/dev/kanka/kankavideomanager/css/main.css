@@ -88,18 +88,18 @@ Video Frame Border
 */
 .videoFrame-playing {
     -fx-border-color: #00ff00;
-    -fx-border-width: 6px;
+    -fx-border-width: 6px; /* TODO: Use CSS variable or keep as is since CSS can't access Java constants */
     -fx-border-style: solid;
 }
 
 .videoFrame-paused {
     -fx-border-color: #ff0000;
-    -fx-border-width: 6px;
+    -fx-border-width: 6px; /* TODO: Use CSS variable or keep as is since CSS can't access Java constants */
     -fx-border-style: solid;
 }
 
 .videoFrame-stopped {
     -fx-border-color: #ff0000;
-    -fx-border-width: 6px;
+    -fx-border-width: 6px; /* TODO: Use CSS variable or keep as is since CSS can't access Java constants */
     -fx-border-style: solid;
 }

@@ -7,6 +7,7 @@ import dev.kanka.kankavideomanager.settings.SettingsController;
 import dev.kanka.kankavideomanager.ui.common.FxController;
 import dev.kanka.kankavideomanager.ui.custom.KnkImageView;
 import dev.kanka.kankavideomanager.utils.*;
+import dev.kanka.kankavideomanager.constants.Constants;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -170,7 +171,7 @@ public class MainController extends FxController {
                     long duration = mediaPlayer.media().info().duration();
                     if (duration > 0) {
                         timeSlider.setMax(duration);
-                        timeSlider.setMajorTickUnit(duration / 10.0);
+                        timeSlider.setMajorTickUnit(duration / Constants.TIME_SLIDER_TICKS);
                         currentPlayingMedia.setDuration(duration);
                     }
                 }
@@ -302,7 +303,7 @@ public class MainController extends FxController {
         });
         speedSlider.setOnMouseClicked(event -> {
             if (event.getButton().equals(MouseButton.PRIMARY)) {
-                if (event.getClickCount() == 2) {
+                if (event.getClickCount() == Constants.DOUBLE_CLICK_COUNT) {
                     speedSlider.setValue(1);
                 }
             }
@@ -322,7 +323,7 @@ public class MainController extends FxController {
             playPauseBtn.setText("Play");
             playPauseBtn.setGraphic(new FontIcon(PLAY_CIRCLE));
             playPauseBtn.setOnAction(event -> play());
-            playPauseBtn.setMinWidth(70.0);
+            playPauseBtn.setMinWidth(Constants.PLAY_PAUSE_BUTTON_MIN_WIDTH);
 
             // Stop
             stopBtn.setOnAction(event -> stop());
@@ -340,7 +341,7 @@ public class MainController extends FxController {
             skipBackwardBtn.setGraphic(new FontIcon(SKIP_BACKWARD));
             skipBackwardBtn.setOnAction(event -> {
                 if (embeddedMediaPlayer != null && embeddedMediaPlayer.media().info() != null) {
-                    embeddedMediaPlayer.controls().skipTime(embeddedMediaPlayer.media().info().duration() / 20 * -1);
+                    embeddedMediaPlayer.controls().skipTime(embeddedMediaPlayer.media().info().duration() / Constants.SKIP_BACKWARD_PERCENTAGE * -1);
                 }
             });
             skipForwardBtn.setGraphic(new FontIcon(SKIP_FORWARD));
@@ -373,13 +374,13 @@ public class MainController extends FxController {
             volumeIcon.setGraphic(new FontIcon(VOLUME_HIGH));
             volumeIcon.setText(null);
             volumeLabel.textProperty().bind(Bindings.format("%.0f", volumeSlider.valueProperty()));
-            embeddedMediaPlayer.audio().setVolume((int) volumeSlider.getValue() / 100);
+            embeddedMediaPlayer.audio().setVolume((int) volumeSlider.getValue() / Constants.MAX_VOLUME);
             volumeSlider.valueProperty()
                     .addListener((observable, oldValue, newValue) -> embeddedMediaPlayer.audio().setVolume(newValue.intValue()));
             volumeSlider.setValue(settingsController.getVolume());
             volumeSlider.setOnMouseClicked(event -> {
                 if (event.getButton().equals(MouseButton.PRIMARY)) {
-                    if (event.getClickCount() == 2) {
+                    if (event.getClickCount() == Constants.DOUBLE_CLICK_COUNT) {
                         volumeSlider.setValue(settingsController.getVolume());
                     }
                 }

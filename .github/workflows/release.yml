@@ -39,7 +39,7 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v1
       with:
-        files: target/kanka-video-manager-${{ steps.get_version.outputs.version }}-all.jar
+        files: target/*-all.jar
         draft: false
         prerelease: false
       env:

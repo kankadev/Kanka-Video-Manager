@@ -23,6 +23,12 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
 import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
+import javafx.geometry.Rectangle2D;
+import javafx.scene.layout.VBox;
+import javafx.scene.layout.HBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.kordamp.ikonli.javafx.FontIcon;
@@ -71,6 +77,14 @@ public class MainController extends FxController {
     private final SimpleIntegerProperty currentPlayingIndex = new SimpleIntegerProperty();
     private final List<KnkMedia> toBeDeletedList = new ArrayList<>();
     private final List<KnkMedia> toBeMovedList = new ArrayList<>();
+    
+    // Fullscreen state
+    private boolean isFullscreen = false;
+    private Rectangle2D previousScreenBounds;
+    private double previousX;
+    private double previousY;
+    private double previousWidth;
+    private double previousHeight;
 
     // declare controls stuff
     private List<Button> controlButtons;
@@ -89,7 +103,7 @@ public class MainController extends FxController {
     BorderPane borderPane;
 
     @FXML
-    MenuItem settingsMenuItem, aboutMenuItem, closeMenuItem;
+    MenuItem settingsMenuItem, aboutMenuItem, closeMenuItem, keyboardShortcutsMenuItem;
 
     @FXML
     Slider timeSlider, volumeSlider, speedSlider;
@@ -149,6 +163,10 @@ public class MainController extends FxController {
 
         settingsMenuItem.setOnAction(event -> settingsController.preferencesFx.show(true));
         closeMenuItem.setOnAction(event -> Platform.exit());
+        keyboardShortcutsMenuItem.setOnAction(event -> showKeyboardShortcutsDialog());
+
+        // Initialize keyboard shortcuts after scene is ready
+        Platform.runLater(this::initKeyboardShortcuts);
 
     }
 
@@ -1029,6 +1047,144 @@ public class MainController extends FxController {
                 }
             });
         });
+    }
+
+    /**
+     * Initialize global keyboard shortcuts.
+     */
+    private void initKeyboardShortcuts() {
+        borderPane.getScene().setOnKeyPressed(event -> {
+            String keyText = event.getCode().toString();
+            
+            switch (keyText) {
+                case Constants.SHORTCUT_DELETE:
+                    deleteSelectedMedia();
+                    break;
+                case Constants.SHORTCUT_MOVE:
+                    moveSelectedMedia();
+                    break;
+                case Constants.SHORTCUT_NEXT:
+                    next();
+                    break;
+                case Constants.SHORTCUT_PLAY_PAUSE:
+                    play();
+                    break;
+                case Constants.SHORTCUT_PREVIOUS:
+                    previous();
+                    break;
+                case Constants.SHORTCUT_STOP:
+                    stop();
+                    break;
+                case Constants.SHORTCUT_FULLSCREEN:
+                    toggleFullscreen();
+                    break;
+                case Constants.SHORTCUT_EXIT_FULLSCREEN:
+                    if (isFullscreen) {
+                        toggleFullscreen();
+                    }
+                    break;
+            }
+        });
+    }
+
+    /**
+     * Delete the currently selected media from the playlist.
+     */
+    private void deleteSelectedMedia() {
+        KnkMedia selectedMedia = playList.getSelectionModel().getSelectedItem();
+        if (selectedMedia != null) {
+            markMediaForDeletion(selectedMedia);
+        }
+    }
+
+    /**
+     * Move the currently selected media.
+     */
+    private void moveSelectedMedia() {
+        KnkMedia selectedMedia = playList.getSelectionModel().getSelectedItem();
+        if (selectedMedia != null) {
+            markMediaForMove(selectedMedia);
+        }
+    }
+
+    /**
+     * Toggle fullscreen mode.
+     */
+    private void toggleFullscreen() {
+        Stage stage = (Stage) borderPane.getScene().getWindow();
+        
+        if (!isFullscreen) {
+            // Save current state
+            previousScreenBounds = Screen.getScreensForRectangle(stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight()).get(0).getBounds();
+            previousX = stage.getX();
+            previousY = stage.getY();
+            previousWidth = stage.getWidth();
+            previousHeight = stage.getHeight();
+            
+            // Enter fullscreen
+            stage.setX(previousScreenBounds.getMinX());
+            stage.setY(previousScreenBounds.getMinY());
+            stage.setWidth(previousScreenBounds.getWidth());
+            stage.setHeight(previousScreenBounds.getHeight());
+            isFullscreen = true;
+        } else {
+            // Exit fullscreen
+            stage.setX(previousX);
+            stage.setY(previousY);
+            stage.setWidth(previousWidth);
+            stage.setHeight(previousHeight);
+            isFullscreen = false;
+        }
+    }
+
+    /**
+     * Show keyboard shortcuts dialog.
+     */
+    private void showKeyboardShortcutsDialog() {
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Keyboard Shortcuts");
+        dialog.setHeaderText("Keyboard Shortcuts");
+        
+        // Create content
+        VBox content = new VBox(10);
+        content.setPadding(new Insets(20));
+        
+        // Title
+        Label title = new Label("Keyboard Shortcuts");
+        title.setFont(Font.font("System", FontWeight.BOLD, 16));
+        content.getChildren().add(title);
+        
+        // Shortcuts table
+        VBox shortcutsBox = new VBox(5);
+        
+        addShortcutRow(shortcutsBox, "D", "Delete selected video");
+        addShortcutRow(shortcutsBox, "M", "Move selected video");
+        addShortcutRow(shortcutsBox, "N", "Next video");
+        addShortcutRow(shortcutsBox, "Space", "Play / Pause");
+        addShortcutRow(shortcutsBox, "P", "Previous video");
+        addShortcutRow(shortcutsBox, "S", "Stop playback");
+        addShortcutRow(shortcutsBox, "F", "Toggle fullscreen");
+        addShortcutRow(shortcutsBox, "Esc", "Exit fullscreen");
+        
+        content.getChildren().add(shortcutsBox);
+        
+        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
+        
+        dialog.showAndWait();
+    }
+
+    /**
+     * Add a shortcut row to the shortcuts box.
+     */
+    private void addShortcutRow(VBox container, String key, String description) {
+        HBox row = new HBox(10);
+        Label keyLabel = new Label(key);
+        keyLabel.setStyle("-fx-font-weight: bold; -fx-background-color: #e0e0e0; -fx-padding: 2 8 2 8; -fx-background-radius: 3;");
+        keyLabel.setMinWidth(80);
+        Label descLabel = new Label(description);
+        row.getChildren().addAll(keyLabel, descLabel);
+        container.getChildren().add(row);
     }
 
 

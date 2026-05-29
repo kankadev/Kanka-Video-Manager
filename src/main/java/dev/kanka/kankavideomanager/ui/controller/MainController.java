@@ -24,7 +24,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
-import javafx.geometry.Rectangle2D;
+import javafx.geometry.Insets;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Font;
@@ -77,14 +77,6 @@ public class MainController extends FxController {
     private final SimpleIntegerProperty currentPlayingIndex = new SimpleIntegerProperty();
     private final List<KnkMedia> toBeDeletedList = new ArrayList<>();
     private final List<KnkMedia> toBeMovedList = new ArrayList<>();
-    
-    // Fullscreen state
-    private boolean isFullscreen = false;
-    private Rectangle2D previousScreenBounds;
-    private double previousX;
-    private double previousY;
-    private double previousWidth;
-    private double previousHeight;
 
     // declare controls stuff
     private List<Button> controlButtons;
@@ -163,7 +155,15 @@ public class MainController extends FxController {
 
         settingsMenuItem.setOnAction(event -> settingsController.preferencesFx.show(true));
         closeMenuItem.setOnAction(event -> Platform.exit());
-        keyboardShortcutsMenuItem.setOnAction(event -> showKeyboardShortcutsDialog());
+        
+        if (keyboardShortcutsMenuItem != null) {
+            keyboardShortcutsMenuItem.setOnAction(event -> {
+                LOGGER.debug("Keyboard shortcuts menu item clicked");
+                showKeyboardShortcutsDialog();
+            });
+        } else {
+            LOGGER.error("keyboardShortcutsMenuItem is null - FXML injection failed");
+        }
 
         // Initialize keyboard shortcuts after scene is ready
         Platform.runLater(this::initKeyboardShortcuts);
@@ -1075,14 +1075,6 @@ public class MainController extends FxController {
                 case Constants.SHORTCUT_STOP:
                     stop();
                     break;
-                case Constants.SHORTCUT_FULLSCREEN:
-                    toggleFullscreen();
-                    break;
-                case Constants.SHORTCUT_EXIT_FULLSCREEN:
-                    if (isFullscreen) {
-                        toggleFullscreen();
-                    }
-                    break;
             }
         });
     }
@@ -1108,70 +1100,40 @@ public class MainController extends FxController {
     }
 
     /**
-     * Toggle fullscreen mode.
-     */
-    private void toggleFullscreen() {
-        Stage stage = (Stage) borderPane.getScene().getWindow();
-        
-        if (!isFullscreen) {
-            // Save current state
-            previousScreenBounds = Screen.getScreensForRectangle(stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight()).get(0).getBounds();
-            previousX = stage.getX();
-            previousY = stage.getY();
-            previousWidth = stage.getWidth();
-            previousHeight = stage.getHeight();
-            
-            // Enter fullscreen
-            stage.setX(previousScreenBounds.getMinX());
-            stage.setY(previousScreenBounds.getMinY());
-            stage.setWidth(previousScreenBounds.getWidth());
-            stage.setHeight(previousScreenBounds.getHeight());
-            isFullscreen = true;
-        } else {
-            // Exit fullscreen
-            stage.setX(previousX);
-            stage.setY(previousY);
-            stage.setWidth(previousWidth);
-            stage.setHeight(previousHeight);
-            isFullscreen = false;
-        }
-    }
-
-    /**
      * Show keyboard shortcuts dialog.
      */
     private void showKeyboardShortcutsDialog() {
-        Dialog<Void> dialog = new Dialog<>();
-        dialog.setTitle("Keyboard Shortcuts");
-        dialog.setHeaderText("Keyboard Shortcuts");
-        
-        // Create content
-        VBox content = new VBox(10);
-        content.setPadding(new Insets(20));
-        
-        // Title
-        Label title = new Label("Keyboard Shortcuts");
-        title.setFont(Font.font("System", FontWeight.BOLD, 16));
-        content.getChildren().add(title);
-        
-        // Shortcuts table
-        VBox shortcutsBox = new VBox(5);
-        
-        addShortcutRow(shortcutsBox, "D", "Delete selected video");
-        addShortcutRow(shortcutsBox, "M", "Move selected video");
-        addShortcutRow(shortcutsBox, "N", "Next video");
-        addShortcutRow(shortcutsBox, "Space", "Play / Pause");
-        addShortcutRow(shortcutsBox, "P", "Previous video");
-        addShortcutRow(shortcutsBox, "S", "Stop playback");
-        addShortcutRow(shortcutsBox, "F", "Toggle fullscreen");
-        addShortcutRow(shortcutsBox, "Esc", "Exit fullscreen");
-        
-        content.getChildren().add(shortcutsBox);
-        
-        dialog.getDialogPane().setContent(content);
-        dialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
-        
-        dialog.showAndWait();
+        try {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Keyboard Shortcuts");
+            alert.setHeaderText("Keyboard Shortcuts");
+            
+            // Create content
+            VBox content = new VBox(10);
+            content.setPadding(new Insets(20));
+            
+            // Title
+            Label title = new Label("Keyboard Shortcuts");
+            title.setFont(Font.font("System", FontWeight.BOLD, 16));
+            content.getChildren().add(title);
+            
+            // Shortcuts table
+            VBox shortcutsBox = new VBox(5);
+            
+            addShortcutRow(shortcutsBox, "D", "Delete selected video");
+            addShortcutRow(shortcutsBox, "M", "Move selected video");
+            addShortcutRow(shortcutsBox, "N", "Next video");
+            addShortcutRow(shortcutsBox, "Space", "Play / Pause");
+            addShortcutRow(shortcutsBox, "P", "Previous video");
+            addShortcutRow(shortcutsBox, "S", "Stop playback");
+            
+            content.getChildren().add(shortcutsBox);
+            
+            alert.getDialogPane().setContent(content);
+            alert.showAndWait();
+        } catch (Exception e) {
+            LOGGER.error("Error showing keyboard shortcuts dialog", e);
+        }
     }
 
     /**

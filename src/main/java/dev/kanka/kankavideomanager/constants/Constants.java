@@ -44,6 +44,4 @@ public final class Constants {
     public static final String SHORTCUT_PLAY_PAUSE = "SPACE";
     public static final String SHORTCUT_PREVIOUS = "P";
     public static final String SHORTCUT_STOP = "S";
-    public static final String SHORTCUT_FULLSCREEN = "F";
-    public static final String SHORTCUT_EXIT_FULLSCREEN = "ESCAPE";
 }

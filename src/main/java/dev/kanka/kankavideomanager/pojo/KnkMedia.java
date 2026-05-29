@@ -2,7 +2,6 @@ package dev.kanka.kankavideomanager.pojo;
 
 import dev.kanka.kankavideomanager.enums.MEDIA_STATUS;
 import dev.kanka.kankavideomanager.utils.MediaUtil;
-import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyLongWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 
@@ -15,8 +14,6 @@ public class KnkMedia extends File {
     private final ReadOnlyStringWrapper pathName;
     private final ReadOnlyStringWrapper fileSize;
     private final ReadOnlyLongWrapper duration;
-    private final ReadOnlyStringWrapper comment;
-    private final ReadOnlyIntegerWrapper detectedPersons;
 
     public KnkMedia(String pathname) {
         super(pathname);
@@ -25,8 +22,6 @@ public class KnkMedia extends File {
         this.fileSize = new ReadOnlyStringWrapper(MediaUtil.humanReadableByteCountBin(super.length()));
         // TODO use setConverter on GUI (extends StringConverter...)
         this.duration = new ReadOnlyLongWrapper();
-        this.comment = new ReadOnlyStringWrapper();
-        this.detectedPersons = new ReadOnlyIntegerWrapper();
     }
 
     public String getStatus() {
@@ -79,30 +74,6 @@ public class KnkMedia extends File {
 
     public void setDuration(long duration) {
         this.duration.set(duration);
-    }
-
-    public String getComment() {
-        return comment.get();
-    }
-
-    public ReadOnlyStringWrapper commentProperty() {
-        return comment;
-    }
-
-    public void setComment(String comment) {
-        this.comment.set(comment);
-    }
-
-    public int getDetectedPersons() {
-        return detectedPersons.get();
-    }
-
-    public ReadOnlyIntegerWrapper detectedPersonsProperty() {
-        return detectedPersons;
-    }
-
-    public void setDetectedPersons(int detectedPersons) {
-        this.detectedPersons.set(detectedPersons);
     }
 
     @Override

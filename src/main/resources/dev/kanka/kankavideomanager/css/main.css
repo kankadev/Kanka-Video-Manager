@@ -1,0 +1,105 @@
+* {
+    -fx-primary: #2c5c81;
+    -fx-secondary: #4b4e50;
+    -fx-yellow: #ffff8a;
+    -fx-white: #fff;
+}
+
+/*
+BUTTONS
+*/
+.button {
+    -fx-background-color: -fx-primary;
+    -fx-text-fill: -fx-white;
+    -fx-padding: 7;
+}
+
+/*
+ComboBox
+*/
+.combo-box *,
+.combo-box-popup>.list-view>.virtual-flow>.clipped-container>.sheet>.list-cell .label {
+    -fx-text-fill: -fx-secondary;
+}
+
+.combo-box-popup>.list-view>.virtual-flow>.clipped-container>.sheet>.list-cell:selected .label {
+    -fx-text-fill: -fx-primary;
+}
+
+/**
+ImageViews
+*/
+.knkLogo {
+    -fx-cursor: hand;
+}
+
+/**
+Slider
+*/
+.slider .track {
+    -fx-background-color: -fx-yellow;
+    -fx-border-color: -fx-primary;
+    -fx-border-width: 1;
+}
+
+.slider .thumb {
+    -fx-background-color: -fx-primary;
+    -fx-pref-height: 20;
+    -fx-pref-width: 20;
+}
+
+/**
+HBox in the top
+*/ 
+.topHbox {
+    -fx-background-color: -fx-secondary;
+}
+
+.topHbox .label {
+    -fx-text-fill: -fx-white;
+}
+
+/**
+PlayList
+*/
+
+.table-view .current_playing_row .table-cell {
+    -fx-text-fill: -fx-white;
+}
+
+.table-view .current_playing_row {
+    -fx-background-color: -fx-primary;
+}
+
+.table-row-cell:selected {
+    -fx-background-color: -fx-yellow;
+}
+
+.table-row-cell:selected .table-cell {
+    -fx-text-fill: -fx-secondary;
+}
+
+.table-row-cell .table-column {
+    -fx-alignment: CENTER-LEFT;
+}
+
+/**
+Video Frame Border
+*/
+.videoFrame-playing {
+    -fx-border-color: #00ff00;
+    -fx-border-width: 6px;
+    -fx-border-style: solid;
+}
+
+.videoFrame-paused {
+    -fx-border-color: #ff0000;
+    -fx-border-width: 6px;
+    -fx-border-style: solid;
+}
+
+.videoFrame-stopped {
+    -fx-border-color: #ff0000;
+    -fx-border-width: 6px;
+    -fx-border-style: solid;
+}

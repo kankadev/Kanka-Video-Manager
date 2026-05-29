@@ -1086,7 +1086,7 @@ public class MainController extends FxController {
     private void moveSelectedMedia() {
         KnkMedia selectedMedia = playList.getSelectionModel().getSelectedItem();
         if (selectedMedia != null) {
-            markMediaForMove(selectedMedia);
+            markMediaForMoving(selectedMedia);
         }
     }
 

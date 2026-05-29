@@ -50,20 +50,31 @@ As a base Kanka Video Manager uses vlc / [vlcj](https://github.com/caprica/vlcj)
 
 ### Prerequisites
 
-- Java 17 or higher
-- Maven 3.6 or higher
-- VLC Media Player (required for VLCJ)
+- Java 17 or higher (not required for MSI installer)
+- VLC Media Player (required for VLCJ - must be installed separately)
+- Maven 3.6 or higher (only for building from source)
 
 ### Installation
+
+**Option 1: Using the MSI Installer (Recommended)**
+
+1. Download the latest MSI installer from the [Releases](https://github.com/kankadev/Kanka-Video-Manager/releases) page
+2. Install VLC Media Player (required for video playback)
+3. Run the MSI installer
+4. Launch the application from the Start menu
+
+**Option 2: Building from Source**
 
 1. Clone this repository:
 ```bash
 git clone https://github.com/kankadev/Kanka-Video-Manager.git
 ```
 
-2. Import the project into your IDE (IntelliJ IDEA, Eclipse, etc.)
+2. Install VLC Media Player (required for VLCJ)
 
-3. Run the application:
+3. Import the project into your IDE (IntelliJ IDEA, Eclipse, etc.)
+
+4. Run the application:
 ```bash
 mvn javafx:run
 ```

@@ -205,7 +205,7 @@ public class MainController extends FxController {
                 if (info != null) {
                     long duration = info.duration();
                     timeSlider.setMax(duration);
-                    timeSlider.setMajorTickUnit(duration / 10.0);
+                    timeSlider.setMajorTickUnit(duration / Constants.TIME_SLIDER_TICKS);
 
                     Platform.runLater(() -> {
                         playPauseBtn.setText("Pause");
@@ -402,15 +402,6 @@ public class MainController extends FxController {
                     if (event.getClickCount() == Constants.DOUBLE_CLICK_COUNT) {
                         volumeSlider.setValue(settingsController.getVolume());
                     }
-                }
-            });
-
-            // Timeline Slider
-            timeSlider.setOnMouseClicked(event -> {
-                LOGGER.debug("timeSlider.setOnMouseClicked");
-                if (embeddedMediaPlayer.status().isPlaying()) {
-                    float pos = (float) (timeSlider.getValue() / timeSlider.getMax());
-                    embeddedMediaPlayer.controls().setPosition(pos);
                 }
             });
         });

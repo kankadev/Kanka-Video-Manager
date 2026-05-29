@@ -138,6 +138,7 @@
                   <items>
                     <MenuItem fx:id="aboutMenuItem" mnemonicParsing="false" text="About" />
                         <MenuItem fx:id="githubMenuItem" mnemonicParsing="false" text="GitHub" />
+                        <MenuItem fx:id="keyboardShortcutsMenuItem" mnemonicParsing="false" text="Keyboard Shortcuts" />
                   </items>
                 </Menu>
               </menus>

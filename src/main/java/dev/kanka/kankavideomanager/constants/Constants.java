@@ -36,4 +36,14 @@ public final class Constants {
     
     // Mouse Constants
     public static final int DOUBLE_CLICK_COUNT = 2;
+    
+    // Keyboard Shortcuts
+    public static final String SHORTCUT_DELETE = "D";
+    public static final String SHORTCUT_MOVE = "M";
+    public static final String SHORTCUT_NEXT = "N";
+    public static final String SHORTCUT_PLAY_PAUSE = "SPACE";
+    public static final String SHORTCUT_PREVIOUS = "P";
+    public static final String SHORTCUT_STOP = "S";
+    public static final String SHORTCUT_FULLSCREEN = "F";
+    public static final String SHORTCUT_EXIT_FULLSCREEN = "ESCAPE";
 }

@@ -34,6 +34,7 @@ jobs:
           --app-version 1.0.0 `
           --vendor "Kanka" `
           --description "Video manager for sorting surveillance videos" `
+          --win-console `
           --win-menu `
           --win-shortcut
       shell: pwsh

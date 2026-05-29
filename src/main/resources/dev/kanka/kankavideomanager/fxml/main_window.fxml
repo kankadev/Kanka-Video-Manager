@@ -117,12 +117,6 @@
          </children>
       </VBox>
     </bottom>
-    <left>
-        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Text" BorderPane.alignment="CENTER" />
-    </left>
-    <right>
-        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Text" BorderPane.alignment="CENTER" />
-    </right>
    <top>
       <VBox BorderPane.alignment="CENTER">
          <children>

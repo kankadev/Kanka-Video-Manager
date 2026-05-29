@@ -2,6 +2,7 @@ package dev.kanka.kankavideomanager.ui.controller;
 
 import dev.kanka.kankavideomanager.enums.MEDIA_STATUS;
 import dev.kanka.kankavideomanager.pojo.KnkMedia;
+import dev.kanka.kankavideomanager.service.MediaScannerService;
 import dev.kanka.kankavideomanager.settings.SettingsController;
 import dev.kanka.kankavideomanager.ui.common.FxController;
 import dev.kanka.kankavideomanager.ui.custom.KnkImageView;
@@ -528,12 +529,16 @@ public class MainController extends FxController {
 
                 for (File file : newFiles) {
                     if (file.isFile()) {
-                        knkMedias.add(new KnkMedia(file.getAbsolutePath()));
+                        KnkMedia media = new KnkMedia(file.getAbsolutePath());
+                        knkMedias.add(media);
+                        scanMediaDurationAsync(media);
                     }
                     if (file.isDirectory()) {
                         for (File childFile : Objects.requireNonNull(file.listFiles())) {
                             if (childFile.isFile()) {
-                                knkMedias.add(new KnkMedia(childFile.getAbsolutePath()));
+                                KnkMedia media = new KnkMedia(childFile.getAbsolutePath());
+                                knkMedias.add(media);
+                                scanMediaDurationAsync(media);
                             }
                         }
                     }
@@ -1008,6 +1013,17 @@ public class MainController extends FxController {
 
     public void setCurrentPlayingIndex(int currentPlayingIndex) {
         this.currentPlayingIndex.set(currentPlayingIndex);
+    }
+
+    private void scanMediaDurationAsync(KnkMedia media) {
+        MediaScannerService.getInstance().scanMediaAsync(media, duration -> {
+            Platform.runLater(() -> {
+                if (duration > 0) {
+                    media.setDuration(duration);
+                    playList.refresh();
+                }
+            });
+        });
     }
 
 

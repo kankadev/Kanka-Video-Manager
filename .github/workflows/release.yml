@@ -26,7 +26,7 @@ jobs:
     - name: Create native installer with jpackage
       run: |
         jpackage `
-          --input target/classes `
+          --input target `
           --name "KankaVideoManager" `
           --main-class dev.kanka.kankavideomanager.App `
           --main-jar kanka-video-manager-1.0-SNAPSHOT-all.jar `

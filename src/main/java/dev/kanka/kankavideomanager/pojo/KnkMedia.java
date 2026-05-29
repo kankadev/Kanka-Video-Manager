@@ -20,7 +20,7 @@ public class KnkMedia extends File {
         this.status = new ReadOnlyStringWrapper(MEDIA_STATUS.UNPROCESSED.toString());
         this.pathName = new ReadOnlyStringWrapper(pathname);
         this.fileSize = new ReadOnlyStringWrapper(MediaUtil.humanReadableByteCountBin(super.length()));
-        // TODO use setConverter on GUI (extends StringConverter...)
+        // TODO: Use setConverter on GUI (extends StringConverter...) for better formatting
         this.duration = new ReadOnlyLongWrapper();
     }
 

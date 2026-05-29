@@ -63,11 +63,12 @@ public class MainController extends FxController {
     private MediaPlayerFactory mediaPlayerFactory;
     private EmbeddedMediaPlayer embeddedMediaPlayer;
     private static KnkMedia currentPlayingMedia;
-    private final SimpleIntegerProperty currentPlayingIndex = new SimpleIntegerProperty(); // TODO use this property to
-    // determine if is current
-    // media the first or last in
-    // the list and disable
-    // previous or next buttons
+    /**
+     * Index of the currently playing media in the playlist.
+     * Used to determine if the current media is the first or last in the list
+     * to disable previous or next buttons accordingly.
+     */
+    private final SimpleIntegerProperty currentPlayingIndex = new SimpleIntegerProperty();
     private final List<KnkMedia> toBeDeletedList = new ArrayList<>();
     private final List<KnkMedia> toBeMovedList = new ArrayList<>();
 
@@ -613,7 +614,7 @@ public class MainController extends FxController {
                 }
 
                 for (KnkMedia media : toBeMovedList) {
-                    // TODO: move files, show alert if there is no path in the settings... or open
+                    // TODO: Move files, show alert if there is no path in the settings... or open file dialog
                     // the settings directly?
 
                     if (media.exists()) {
@@ -838,7 +839,7 @@ public class MainController extends FxController {
             removed = playList.getItems().remove(media);
         }
         if (skip) {
-            // next(); // TODO
+            // TODO: Implement auto-play next when current media ends
         }
         return removed;
     }
@@ -852,7 +853,10 @@ public class MainController extends FxController {
         return playList.getItems().isEmpty();
     }
 
-    // TODO refactor both play() functions
+    /**
+     * TODO: Refactor both play() functions to avoid code duplication.
+     * Currently there are separate play() methods for different use cases.
+     */
     private void play() {
         play(null);
     }

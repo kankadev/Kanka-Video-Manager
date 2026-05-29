@@ -50,7 +50,7 @@ Slider
 
 /**
 HBox in the top
-*/
+*/ 
 .topHbox {
     -fx-background-color: -fx-secondary;
 }
@@ -81,4 +81,27 @@ PlayList
 
 .table-row-cell .table-column {
     -fx-alignment: CENTER-LEFT;
+}
+
+/**
+Video Frame Border
+*/
+.videoFrame {
+    &-playing {
+        -fx-border-color: #00ff00;
+        -fx-border-width: 6px;
+        -fx-border-style: solid;
+    }
+
+    &-paused {
+        -fx-border-color: #ff0000;
+        -fx-border-width: 6px;
+        -fx-border-style: solid;
+    }
+
+    &-stopped {
+        -fx-border-color: #ff0000;
+        -fx-border-width: 6px;
+        -fx-border-style: solid;
+    }
 }

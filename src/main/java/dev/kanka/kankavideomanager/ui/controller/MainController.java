@@ -81,7 +81,6 @@ public class MainController extends FxController {
 
     private final SettingsController settingsController = new SettingsController();
 
-    private VideoAnalysisManager videoAnalysisManager;
 
     @FXML
     BorderPane borderPane;
@@ -99,7 +98,7 @@ public class MainController extends FxController {
     TableView<KnkMedia> playList;
 
     @FXML
-    TableColumn<KnkMedia, String> statusColumn, pathNameColumn, fileSizeColumn, commentColumn, detailsColumn;
+    TableColumn<KnkMedia, String> statusColumn, pathNameColumn, fileSizeColumn;
 
     @FXML
     TableColumn<KnkMedia, Long> durationColumn;
@@ -116,17 +115,9 @@ public class MainController extends FxController {
     @FXML
     Hyperlink kankaLink;
 
-    @FXML
-    private Button analyzeButton;
 
-    @FXML
-    private TextField personCountField;
 
-    @FXML
-    private Button filterButton;
 
-    @FXML
-    private ProgressBar progressBar;
 
     /**
      * @return MainController singleton instance
@@ -152,13 +143,10 @@ public class MainController extends FxController {
         initDragDropListener();
         initStatistics();
         initLogo();
-        initAnalyzeButton();
-        initFilterButton();
 
         settingsMenuItem.setOnAction(event -> settingsController.preferencesFx.show(true));
         closeMenuItem.setOnAction(event -> Platform.exit());
 
-        this.videoAnalysisManager = new VideoAnalysisManager(playList, progressBar);
     }
 
     /**
@@ -202,6 +190,8 @@ public class MainController extends FxController {
                         playPauseBtn.setText("Pause");
                         playPauseBtn.setGraphic(pauseIcon);
                         currentPlayingMedia.setDuration(duration);
+                        borderPane.getCenter().getStyleClass().removeAll("videoFrame-paused", "videoFrame-stopped");
+                        borderPane.getCenter().getStyleClass().add("videoFrame-playing");
                     });
                 }
 
@@ -214,6 +204,8 @@ public class MainController extends FxController {
                 Platform.runLater(() -> {
                     playPauseBtn.setText("Play");
                     playPauseBtn.setGraphic(playIcon);
+                    borderPane.getCenter().getStyleClass().removeAll("videoFrame-playing", "videoFrame-stopped");
+                    borderPane.getCenter().getStyleClass().add("videoFrame-paused");
                 });
             }
 
@@ -223,6 +215,8 @@ public class MainController extends FxController {
 
                 Platform.runLater(() -> {
                     // timeSlider.setValue(0);
+                    borderPane.getCenter().getStyleClass().removeAll("videoFrame-playing", "videoFrame-paused");
+                    borderPane.getCenter().getStyleClass().add("videoFrame-stopped");
                 });
             }
 
@@ -235,6 +229,8 @@ public class MainController extends FxController {
                     playPauseBtn.setGraphic(playIcon);
                     if (mediaPlayer.status().state() == State.ENDED) {
                         timeSlider.setValue(timeSlider.getMax());
+                        borderPane.getCenter().getStyleClass().removeAll("videoFrame-playing", "videoFrame-paused");
+                        borderPane.getCenter().getStyleClass().add("videoFrame-stopped");
                     }
                 });
             }
@@ -445,29 +441,6 @@ public class MainController extends FxController {
                 }
             }
         });
-
-        // comment column
-        commentColumn.setCellValueFactory(new PropertyValueFactory<>("comment"));
-        commentColumn.setCellFactory(param -> new TableCell<>() {
-            @Override
-            protected void updateItem(String comment, boolean empty) {
-                LOGGER.debug("comment: {}, empty: {}", comment, empty);
-
-                // TODO https://github.com/kankadev/Kanka-Video-Manager/issues/10
-
-                if (!empty) {
-                    final TextField textField = new TextField(comment);
-                    textField.textProperty().addListener((observable, oldValue, newValue) -> getTableRow().getItem().setComment(newValue));
-
-                    setGraphic(textField);
-                } else {
-                    setGraphic(null);
-                    setText(null);
-                }
-            }
-        });
-
-        detailsColumn.setCellValueFactory(new PropertyValueFactory<>("detectedPersons"));
 
         playList.itemsProperty().addListener((observable, oldItems, newItems) -> {
             countFilesLabel.textProperty().bind(Bindings.size(newItems).asString("%s items in playlist"));
@@ -1037,27 +1010,5 @@ public class MainController extends FxController {
         this.currentPlayingIndex.set(currentPlayingIndex);
     }
 
-    private void initAnalyzeButton() {
-        analyzeButton.setOnAction(event -> analyzeVideos());
-    }
-
-    private void analyzeVideos() {
-        videoAnalysisManager.analyzeAllVideos();
-    }
-
-    private void initFilterButton() {
-        filterButton.setOnAction(event -> filterVideos());
-    }
-
-    private void filterVideos() {
-        int personCount = Integer.parseInt(personCountField.getText());
-        for (KnkMedia media : playList.getItems()) {
-            if (media.getDetectedPersons() >= personCount) {
-                playList.getSelectionModel().select(media);
-                playList.scrollTo(media);
-                playList.refresh();
-            }
-        }
-    }
 
 }

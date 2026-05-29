@@ -128,16 +128,6 @@
             <artifactId>preferencesfx-core</artifactId>
             <version>11.11.0</version>
         </dependency>
-        <dependency>
-            <groupId>org.openpnp</groupId>
-            <artifactId>opencv</artifactId>
-            <version>4.9.0-0</version>
-        </dependency>
-        <dependency>
-            <groupId>nu.pattern</groupId>
-            <artifactId>opencv</artifactId>
-            <version>2.4.9-4</version>
-        </dependency>
     </dependencies>
 
     <build>
@@ -159,10 +149,6 @@
                     <target>17</target>
                     <release>17</release>
                     <encoding>UTF-8</encoding>
-                    <compilerArgs>
-                        <arg>--add-modules</arg>
-                        <arg>opencv</arg>
-                    </compilerArgs>
                 </configuration>
             </plugin>
             <plugin>
@@ -171,10 +157,6 @@
                 <version>0.0.8</version>
                 <configuration>
                     <mainClass>dev.kanka.kankavideomanager.App</mainClass>
-                    <options>
-                        <option>--add-modules</option>
-                        <option>opencv</option>
-                    </options>
                 </configuration>
                 <executions>
                     <execution>

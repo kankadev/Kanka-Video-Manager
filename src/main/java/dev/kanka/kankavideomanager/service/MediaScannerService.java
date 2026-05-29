@@ -1,11 +1,11 @@
 package dev.kanka.kankavideomanager.service;
 
 import dev.kanka.kankavideomanager.pojo.KnkMedia;
+import dev.kanka.kankavideomanager.constants.Constants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 import uk.co.caprica.vlcj.player.base.MediaPlayer;
-import uk.co.caprica.vlcj.player.base.State;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -20,7 +20,7 @@ public class MediaScannerService {
     
     private MediaScannerService() {
         this.mediaPlayerFactory = new MediaPlayerFactory("--no-audio", "--no-video");
-        this.executorService = Executors.newFixedThreadPool(4);
+        this.executorService = Executors.newFixedThreadPool(Constants.SCANNER_THREAD_POOL_SIZE);
     }
     
     public static synchronized MediaScannerService getInstance() {
@@ -38,7 +38,7 @@ public class MediaScannerService {
                 mediaPlayer.media().play(media.getAbsolutePath());
                 
                 // Wait for media to be parsed (check if duration becomes available)
-                int maxWait = 10; // seconds
+                int maxWait = Constants.SCANNER_MAX_WAIT_SECONDS; // seconds
                 int waited = 0;
                 long duration = 0;
                 while (waited < maxWait) {
@@ -46,7 +46,7 @@ public class MediaScannerService {
                     if (duration > 0) {
                         break;
                     }
-                    TimeUnit.MILLISECONDS.sleep(100);
+                    TimeUnit.MILLISECONDS.sleep(Constants.SCANNER_POLL_INTERVAL_MS);
                     waited++;
                 }
                 

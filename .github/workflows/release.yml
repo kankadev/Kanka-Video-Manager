@@ -36,7 +36,8 @@ jobs:
           --description "Video manager for sorting surveillance videos" `
           --win-console `
           --win-menu `
-          --win-shortcut
+          --win-shortcut `
+          --add-modules "javafx.controls,javafx.fxml,javafx.graphics,javafx.media"
       shell: pwsh
       
     - name: Get version from tag

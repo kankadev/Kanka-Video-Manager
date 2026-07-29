@@ -113,7 +113,7 @@ public class MainController extends FxController {
     TableColumn<KnkMedia, Long> durationColumn;
 
     @FXML
-    Label countFilesLabel, volumeIcon, volumeLabel, speedLabel, deletedFilesLabel, movedFilesLabel;
+    Label countFilesLabel, volumeIcon, volumeLabel, speedLabel, deletedFilesLabel, movedFilesLabel, timeLabel;
 
     @FXML
     Button emptyPlaylistBtn, processAllFilesBtn;
@@ -193,6 +193,9 @@ public class MainController extends FxController {
                         timeSlider.setMajorTickUnit(duration / Constants.TIME_SLIDER_TICKS);
                         currentPlayingMedia.setDuration(duration);
                     }
+                    updateTimeLabel(0, duration);
+                } else {
+                    updateTimeLabel(0, 0);
                 }
 
             }
@@ -214,6 +217,7 @@ public class MainController extends FxController {
                         borderPane.getCenter().getStyleClass().removeAll("videoFrame-paused", "videoFrame-stopped");
                         borderPane.getCenter().getStyleClass().add("videoFrame-playing");
                     });
+                    updateTimeLabel(0, duration);
                 }
 
             }
@@ -262,6 +266,8 @@ public class MainController extends FxController {
                     if (!timeSlider.isValueChanging()) {
                         timeSlider.setValue(newTime);
                     }
+                    long duration = (long) timeSlider.getMax();
+                    updateTimeLabel(newTime, duration);
                 });
             }
 
@@ -278,6 +284,8 @@ public class MainController extends FxController {
                     if (!timeSlider.isValueChanging()) {
                         timeSlider.setValue(newPosition * timeSlider.getMax());
                     }
+                    long duration = (long) timeSlider.getMax();
+                    updateTimeLabel(Math.round(newPosition * duration), duration);
                 });
             }
         });
@@ -306,6 +314,23 @@ public class MainController extends FxController {
                 double pos = event.getX() / timeSlider.getWidth();
                 embeddedMediaPlayer.controls().setTime((long) (pos * embeddedMediaPlayer.media().info().duration()));
             }
+        });
+    }
+
+    private String formatTime(long millis) {
+        long totalSeconds = millis / 1000;
+        long hours = totalSeconds / 3600;
+        long minutes = (totalSeconds % 3600) / 60;
+        long seconds = totalSeconds % 60;
+        if (hours > 0) {
+            return String.format("%02d:%02d:%02d", hours, minutes, seconds);
+        }
+        return String.format("%02d:%02d", minutes, seconds);
+    }
+
+    private void updateTimeLabel(long currentTime, long duration) {
+        Platform.runLater(() -> {
+            timeLabel.setText(formatTime(currentTime) + " / " + formatTime(duration));
         });
     }
 
